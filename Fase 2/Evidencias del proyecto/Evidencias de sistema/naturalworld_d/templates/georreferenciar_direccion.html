@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Georreferenciar Dirección</title>
+</head>
+<body>
+    <h1>Georreferenciar Dirección</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <label for="countyName">Comuna:</label>
+        <input type="text" name="countyName" id="countyName" required><br><br>
+        
+        <label for="streetName">Nombre de la Calle:</label>
+        <input type="text" name="streetName" id="streetName" required><br><br>
+        
+        <label for="streetNumber">Número:</label>
+        <input type="text" name="streetNumber" id="streetNumber" required><br><br>
+        
+        <button type="submit">Obtener Coordenadas</button>
+    </form>
+
+    {% if latitude and longitude %}
+        <h2>Coordenadas de la Dirección:</h2>
+        <p><strong>Latitud:</strong> {{ latitude }}</p>
+        <p><strong>Longitud:</strong> {{ longitude }}</p>
+        <p><strong>ID de Dirección:</strong> {{ addressId }}</p>
+    {% elif error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

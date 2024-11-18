@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% with is_product_detail=True %}
+{% load static %}
+{% block content %}
+<title>Detalles del producto</title>
+    <div class="container mt-5">
+    <button class="btn btn-outline-success mb-3" onclick="history.back()">Volver Atrás</button>
+    <div class=" product-container green-bordered-rounded "> <!-- Fondo blanco -->
+        
+        <div class="row">
+            <!-- Sección de la imagen principal -->
+            <div class="col-md-6">
+                <div class="main-product-image">
+                    <img src="{{ producto.imagen.url }}" class="img-fluid" alt="{{ producto.nombre }}" style="width:600px; height:380px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #000000; border-radius: 5px;"> 
+                </div>
+                <div class="row mt-3">
+                    <!-- Miniaturas adicionales de imágenes -->
+                    {% for imagen in producto.imagenes.all %}
+                    <div class="col-3">
+                        <img src="{{ imagen.url }}" alt="Miniatura" class="img-thumbnail">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sección de detalles del producto -->
+            <div class="col-lg-6"> 
+                <h2>{{ producto.nombre }}</h2> 
+                <p><strong>ID:</strong> {{ producto.id }}</p> 
+                <p><strong>Descripción:</strong> {{ producto.descripcion }}</p> 
+                <p><strong>Precio:</strong> {{ producto.precio_formateado }}</p> 
+                <p><strong>Stock:</strong> {{ producto.stock }}</p>
+                <br>
+                <button type="button" class="btn btn-outline-success add-to-cart" data-product-id="{{ producto.id }}">Añadir al carrito</button> 
+
+        </div> 
+        </div>
+
+</div></div>
+<br><Br>
+
+<style> 
+.green-bordered-rounded { 
+    border: 2px solid #28a745; /* Borde verde */ 
+    border-radius: 10px; /* Bordes redondeados */ 
+    padding: 20px; /* Espaciado interno */ } </style>
+
+<!-- Script de Mercado Pago y lógica de inicio de pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+    function iniciarPago() {
+        fetch(`/producto/{{ producto.id }}/crear-preferencia/`)
+            .then(response => response.json())
+            .then(data => {
+                const mp = new MercadoPago('APP_USR-ac46566e-de06-4f84-96e8-8e3983b1da19', { locale: 'es-CL' });
+                mp.checkout({
+                    preference: {
+                        id: data.preference_id
+                    },
+                    autoOpen: true
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+
+<!-- Enlace al archivo JavaScript -->
+<script src="{% static 'js/comments.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const buttons = document.querySelectorAll('.add-to-cart');
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-product-id');
+                
+                fetch(`/agregar_al_carrito/${productId}/`, {  // URL corregida para incluir el productId
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' // Para que Django reconozca la solicitud como AJAX
+                    },
+                    body: JSON.stringify({}),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();  // Intenta convertir la respuesta a JSON
+                })
+                .then(data => {
+                    console.log("Response data:", data); // Registra la respuesta JSON para depuración
+                    if (data.success) {
+                        const cartCount = document.getElementById('cartCount');
+                        cartCount.textContent = data.cart_total_items;
+                        alert('Producto añadido al carrito.');
+                    } else {
+                        alert('Error: ' + (data.message || 'No se pudo añadir el producto.'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al añadir al carrito:', error);
+                    alert(`Hubo un problema al añadir el producto al carrito: ${error.message}`);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endwith %}

@@ -1,0 +1,69 @@
+<!-- pago.html -->
+
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container">
+    <h2>Resumen de tu Pedido</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in carrito %}
+            <tr>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>${{ item.precio }}</td>
+                <td>${{ item.cantidad|multiply:item.precio }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><strong>Costo de Envío:</strong> ${{ costo_envio }}</p>
+    <p><strong>Total a Pagar:</strong> ${{ total_pagar }}</p>
+    <p><strong>Dirección de Envío:</strong> {{ direccion.direccion }}, {{ direccion.calle }} {{ direccion.numero }}, {{ direccion.comuna }}</p>
+
+    <!-- Botón de Pagar con Mercado Pago -->
+    <button onclick="iniciarPago()" class="btn btn-primary btn-lg">Pagar con Mercado Pago</button>
+</div>
+
+<!-- SDK de Mercado Pago y lógica de inicio de pago -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+function iniciarPago() {
+    const costoEnvio = parseFloat("{{ costo_envio }}");  // Valor del costo de envío
+    fetch("{% url 'crear_preferencia' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'  // Asegúrate de que el token CSRF está disponible
+        },
+        body: JSON.stringify({
+            costo_envio: costoEnvio  // Pasa el costo de envío al backend
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.preference_id) {
+            const mp = new MercadoPago('APP_USR-ac46566e-de06-4f84-96e8-8e3983b1da19', { locale: 'es-CL' });  // Reemplaza con tu Public Key
+            mp.checkout({
+                preference: {
+                    id: data.preference_id
+                },
+                autoOpen: true
+            });
+        } else {
+            alert("Error al crear la preferencia de pago: " + data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

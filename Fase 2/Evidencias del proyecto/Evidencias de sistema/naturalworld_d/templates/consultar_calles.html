@@ -1,0 +1,30 @@
+<!-- template_a_mostrar.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Calles</title>
+</head>
+<body>
+    <h1>Consulta de Calles</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="countyName">Nombre de la comuna:</label>
+        <input type="text" name="countyName" id="countyName" required><br><br>
+        <label for="streetName">Nombre de la calle:</label>
+        <input type="text" name="streetName" id="streetName" required><br><br>
+        <button type="submit">Buscar</button>
+    </form>
+
+    {% if calles %}
+        <h2>Resultados:</h2>
+        <ul>
+            {% for calle in calles %}
+                <li>ID: {{ calle.streetId }}, Nombre: {{ calle.streetName }}, Comuna: {{ calle.countyName }}, Tipo de vía: {{ calle.roadType }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No se encontraron calles para la consulta.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,286 @@
+{% load static %}
+{% load livereload_tags %}
+{% livereload_script %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado de busqueda</title>
+    <link rel="shortcut icon" href="{% static 'img/Logo_principal.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Vincular al archivo CSS separado -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'index' %}" style="color: blanchedalmond;">
+                <img src="{% static 'img/Logo_principal.png' %}" width="50" height="50">
+              </a>
+
+            <button class="menu-btn" onclick="openMenu()">
+                <span class="bar" ></span> 
+                <span class="bar" ></span> 
+                <span class="bar"></span> 
+            </button>
+
+            <!--Overlay negro -->
+            <div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+            <!-- Menú lateral (sidebar) -->
+            <div id="sidebar" class="sidebar">
+                <a href="javascript:void(0)" class="close-btn" onclick="closeMenu()">&times;</a>
+                <h4 class="px-4">Medicina Natural</h4>
+                <a href="{% url 'index' %}">Inicio </a>
+                <a href="{% url 'pag_productos' %}">Productos </a>
+                <a href="#">Seguimiento <span class="label-tag">NUEVO</span></a>
+
+            </div>
+
+            <!-- Contenedor general centrado -->
+            <div class="d-flex justify-content-center align-items-center w-100">
+                <!-- Campo de búsqueda -->
+                <form class="search-container" method="get" action="{% url 'buscar_producto' %}">
+                    <input class="form-control me-2 rounded-pill" type="search" placeholder="Buscar" name="query" aria-label="Search">
+                    <button class="btn-search" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+                
+                <!-- Ícono de usuario con el texto "Bienvenid@ Iniciar sesión" -->
+<!-- Ícono de usuario con el texto "Bienvenid@ Iniciar sesión" -->
+<div class="dropdown ms-1 d-flex align-items-center">
+    <button class="btn dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle"></i>
+        <span class="ms-2">
+            <strong>Bienvenid@ {{user.username}}</strong><br/>
+            <a href="#" class="text-muted">Cuenta</a>
+        </span>
+    </button>
+
+    <!-- Menú desplegable -->
+
+<!-- Menú desplegable -->
+
+{% if user.is_authenticated %}
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+        {% if perms.app.add_Producto %}
+            <li><a class="dropdown-item" href="{% url 'admin_productos' %}"><img src="{% static 'img/product.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Productos</a></li>
+            <li><a class="dropdown-item" href="{% url 'login' %}"><img src="{% static 'img/pedido_icon.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Pedidos</a></li>
+            <li><a class="dropdown-item" href="http://127.0.0.1:8000/admin"><img src="{% static 'img/adminezzz.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Avanzada</a></li>
+        {% endif %}
+        <li><a class="dropdown-item" href="{% url 'logout' %}">
+            <img src="{% static 'img/xez.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;">&nbsp Cerrar Sesión</a></li>
+    </ul>
+{% else %}
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+        <li><a class="dropdown-item" href="{% url 'login' %}"> <img src="{% static 'img/useeer.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;"> &nbsp Iniciar Sesión</a></li>
+        <li><a class="dropdown-item" href="#"> <img src="{% static 'img/usermujer.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;"> &nbsp Registrarse</a></li>
+    </ul>
+{% endif %}
+
+</div>
+
+
+
+<div class="cart-container">
+    <a href="/carrito-compras" style="text-decoration: none;">
+        <i class="bi bi-bag"></i>
+        <span id="cartCount">0</span>
+    </a>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+<div class="container mt-4">
+    <div class="container mt-4"> 
+        <h2 class="green-bordered-rounded">Resultados de búsqueda para <Strong>"{{ query }}"</Strong></h2>
+     </div>
+
+    {% if productos %}
+        <div class="row">
+            {% for producto in productos %}
+                <div class="col-md-4 mt-4">
+                    
+                    <div class="card product-card">
+                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="width:305px; height:200px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #000000; border-radius: 5px;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.nombre }}</h5>
+                            <p class="card-text">{{ producto.descripcion }}</p>
+                            <p class="card-price">{{ producto.precio_formateado }}</p>
+                        </div>
+                        <a href="{% url 'producto_detalle' producto_id=producto.id %}" class="btn btn-outline-success">Ver Detalles</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No se encontraron productos.</p>
+    {% endif %}
+</div>
+
+<style>
+    .product-card {
+        border: 2px solid #28a745; /* Verde oscuro */
+        border-radius: 5px; /* Opcional: para bordes redondeados */
+    }
+    .green-bordered-rounded { 
+        border: 2px solid #28a745; /* Borde verde */
+         border-radius: 10px; /* Bordes redondeados */ 
+         padding: 10px; /* Espaciado interno */ 
+         text-align: center; /* Centramos el texto */
+          background-color: #f8f9fa; /* Fondo claro */ } 
+          
+    .centered-container { 
+        padding-left: 30%; 
+        padding-right: 30%; }
+</style>
+<!-- FOOTER -->
+<footer class="custom-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                <img src="{% static 'img/LogoPrincipal.png' %}" alt="logoDePelos" width="150px" class="img-fluid">
+            </div>
+            <div class="col-lg-1 col-md-2 col-sm-6 mb-3">
+                <a href="{% url 'index' %}" id="linkFooter" class="d-block"><strong>INICIO</strong></a>
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-6 mb-3">
+                <a href="#" id="linkFooter" class="d-block"><strong>PRODUCTOS</strong></a>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                <a href="#" id="linkFooter" class="d-block"><strong>SEGUIMIENTO</strong></a>
+            </div>
+            <div class="col-lg-3 col-md-12 col-sm-12 mb-3">
+                <strong>REDES</strong>
+                <br><br>
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{% static 'img/logofacebookez.png' %}" alt="" width="20px" height="20px" class="mr-2">
+                    <a href="https://www.facebook.com/DuocUC" id="linkFooter">&nbsp El Mundo de la medicina natural</a>
+                </div>
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'img/instalogoez.png' %}" alt="" width="20px" height="20px" class="mr-2">
+                    <a href="https://www.instagram.com/verdesanacl/profilecard/?igsh=MXR0YWpjNXduNHM0bw%3D%3D" id="linkFooter"> &nbsp El Mundo de la medicina natural</a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-sm-12 mb-3">
+                <a href="#" id="linkFooter" class="d-block"><strong>CONTACTO</strong></a>
+                <br>
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{% static 'img/ubicacion.png' %}" alt="" width="20px" height="20px" class="mr-2">
+                    <p class="mb-0">&nbsp Santiago</p>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{% static 'img/phonez.png' %}" alt="" width="20px" height="20px" class="mr-2">
+                    <p class="mb-0">&nbsp +569 5697 5821</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'img/gmail.png' %}" alt="" width="20px" height="20px" class="mr-2">
+                    <p class="mb-0">EMDLMN@GMAIL.COM</p>
+                </div>
+                <br>
+                <p>Capstone</p>
+                <p>&copy; EMDLMN - 2024</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .carousel-outline {
+        border-top: 2px solid #28a745;  /* Borde superior verde */
+        border-bottom: 2px solid #28a745; /* Borde inferior verde */
+        border-left: none; /* Sin borde a la izquierda */
+        border-right: none; /* Sin borde a la derecha */
+        border-radius: 0; /* Opcional: sin bordes redondeados */
+    }
+    .custom-footer {
+        background-color: white;
+        color: #000;
+        border-top: 2px solid green; /* Línea verde en la parte superior */
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    
+    #linkFooter {
+        color: #000;
+        text-decoration: none;
+    }
+    
+    #linkFooter:hover {
+        text-decoration: underline;
+    }
+    
+    .custom-footer .img-fluid {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    @media (max-width: 767px) {
+        .custom-footer .row > div {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    }
+    </style>
+    
+
+
+    <!-- JavaScript para abrir y cerrar el menú lateral -->
+    <script>
+        function openMenu() {
+            document.getElementById("sidebar").classList.add("active");
+            document.getElementById("overlay").classList.add("active");
+            var menuBtn = document.querySelector('.menu-btn');
+            menuBtn.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            document.getElementById("sidebar").classList.remove("active");
+            document.getElementById("overlay").classList.remove("active");
+            var menuBtn = document.querySelector('.menu-btn');
+            menuBtn.classList.remove('active');
+        }
+    </script>
+
+<style>
+    .menu-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 30px;
+    }
+    
+    .menu-btn .bar {
+        display: block;
+        width: 100%;
+        height: 3px;
+        margin: 4px 0;
+        background-color: #000; /* Cambia el color según tu diseño */
+    }
+
+    .color-principal {
+    background-color: #409244; /* Color de fondo personalizado */
+    color: white; /* Color del texto */
+    }
+    </style>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+

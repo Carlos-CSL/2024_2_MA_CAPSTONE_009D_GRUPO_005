@@ -1,0 +1,495 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Cotizador",
+        "description": "REST Rating API",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "http://testservices.wschilexpress.com/rating"
+        },
+        {
+            "url": "https://testservices.wschilexpress.com/rating"
+        }
+    ],
+    "paths": {
+        "/api/v{version}/rates/courier": {
+            "post": {
+                "tags": [
+                    "Rates"
+                ],
+                "summary": "Cotizador",
+                "description": "Permite cotizar un envío para un origen y destino. ",
+                "operationId": "Rate",
+                "parameters": [
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "description": "Versión actual 1.0",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "1.0"
+                            ],
+                            "type": "string",
+                            "default": "1.0"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "<ul class=\"list-group\" >\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>originCountryCode</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tstring (4)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tCódigo de la cobertura de origen, obtenido de la API Consultar Coberturas\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>detinationCountryCode</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tstring (4)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tCódigo de la cobertura de destino, obtenido de la API Consultar Coberturas\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tobjeto\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tInformación del paquete que se va a enviar\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.weight</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tnumeric (10,2)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tPeso del paquete en kilogramos, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.height</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tAlto del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.width</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tAncho del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.lenght</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tLargo del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>producttype</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tTipo de producto a enviar; 1 = Documento, 3 = Encomienda\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>declaredWorth</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tValor declarado del paquete\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>deliveryTime</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\topcional\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tServicios de entrega a consultar; 0 = Todos, 1 = Prioritarios, 2 = No prioritarios, 3 = De devolución\n\t\t\t</div>\n\t\t</div>\n\t</li>\n</ul>",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DefinitionRequestBusiness"
+                            },
+                            "example": {
+                                "originCountyCode": "STGO",
+                                "destinationCountyCode": "PROV",
+                                "package": {
+                                    "weight": "16",
+                                    "height": "1",
+                                    "width": "1",
+                                    "length": "1"
+                                },
+                                "productType": 3,
+                                "contentType": 1,
+                                "declaredWorth": "2333",
+                                "deliveryTime": 0
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "<p></p>\n<h4> Cuerpo de la respuesta</h4>\n<p></p>\n<ul class=\"list-group\" >\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n            Servicios de entrega disponibles\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceTypeCode</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            Código del servicio disponible;2 = PRIORITARIO (PREX), 3 = EXPRESS (CHEX), 4 = EXTENDIDO (XTEN), 5 = EXTREMOS (XTRE), 41 = ENC. GRANDES (BIGT1), 42 = ENC. GRANDES EXTENDIDO (BIGT3)\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceDescription</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (100)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del servicio\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.didUseVolumetricWeight</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Indica si se utilizó el peso volumétrico para calcular el peso.\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.finalWeight</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Peso final con el cual se valorizó\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceValue</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Valor en pesos del servicio de entrega\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.conditions</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (100)\n         </div>\n         <div class=\"col-md-6\">\n            Condiciones adicionales del servicio\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.deliveryType</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            tipo de tiempo de entrega\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.additionalService</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n            Servicios adicionales ofrecidos\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>statusCode</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            Código de resultado\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>statusDescription</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (max)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del resultado\n         </div>\n      </div>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>errors</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (max)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del error presentado en caso que aplique.\n         </div>\n      </div>\n   </li>\n</ul>",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/"
+                                },
+                                "example": {
+                                    "data": {
+                                        "courierServiceOptions": [
+                                            {
+                                                "serviceTypeCode": 2,
+                                                "serviceDescription": "PRIORITARIO",
+                                                "didUseVolumetricWeight": false,
+                                                "finalWeight": "16.00",
+                                                "serviceValue": "9306",
+                                                "conditions": "",
+                                                "deliveryType": 0,
+                                                "additionalServices": []
+                                            },
+                                            {
+                                                "serviceTypeCode": 3,
+                                                "serviceDescription": "EXPRESS",
+                                                "didUseVolumetricWeight": false,
+                                                "finalWeight": "16.00",
+                                                "serviceValue": "6204",
+                                                "conditions": "",
+                                                "deliveryType": 0,
+                                                "additionalServices": []
+                                            }
+                                        ]
+                                    },
+                                    "statusCode": 0,
+                                    "statusDescription": "OK",
+                                    "errors": null
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "statusCode": 90,
+                                    "statusDescription": "El JSON de entrada no es válido",
+                                    "errors": [
+                                        "Unterminated string. Expected delimiter: \". Path 'declaredWorth', line 15, position 1."
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternarErrorResponse"
+                                },
+                                "example": {
+                                    "milliseconds": 0,
+                                    "statusCode": 0,
+                                    "statusDescription": "string",
+                                    "errors": [
+                                        "string"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v{version}/rates/business": {
+            "post": {
+                "summary": "Cotizador Empresa",
+                "description": "Permite cotizar un envío para un origen y destino con tarifa de empresa",
+                "operationId": "5f039b0dddbfca95a2baea21",
+                "parameters": [
+                    {
+                        "name": "version",
+                        "in": "path",
+                        "description": "Versión actual 1.0",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "1.0"
+                            ],
+                            "type": "string",
+                            "default": "1.0"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "<ul class=\"list-group\" >\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>originCountryCode</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tstring (4)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tCódigo de la cobertura de origen, obtenido de la API Consultar Coberturas\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>detinationCountryCode</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tstring (4)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tCódigo de la cobertura de destino, obtenido de la API Consultar Coberturas\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tobjeto\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tInformación del paquete que se va a enviar\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.weight</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tnumeric (10,2)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tPeso del paquete en kilogramos, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.height</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tAlto del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.width</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tAncho del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>package.lenght</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tLargo del paquete en centímetros, separado por punto\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>producttype</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tTipo de producto a enviar; 1 = Documento, 3 = Encomienda\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>declaredWorth</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\tobligatorio\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tValor declarado del paquete\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>deliveryTime</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tinteger\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\topcional\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tServicios de entrega a consultar; 0 = Todos, 1 = Prioritarios, 2 = No prioritarios, 3 = De devolución\n\t\t\t</div>\n\t\t</div>\n\t</li>\n\t<li class=\"list-group-item\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-md-3\">\n\t\t\t\t<label>customerCardNumber</label>\n\t\t\t</div>\n\t\t\t<div class=\"col-md-1\">\n\t\t\t\tnumeric (10,2)\n\t\t\t</div>\n\t\t\t<div class=\"col-md-2\">\n\t\t\t\topcional\n\t\t\t</div>\n\t\t\t<div class=\"col-md-6\">\n\t\t\t\tNúmero de Tarjeta Cliente Chilexpress (TCC)\n\t\t\t</div>\n\t\t</div>\n\t</li>\n</ul>",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DefinitionRequestCurier"
+                            },
+                            "example": {
+                                "originCountyCode": "STGO",
+                                "destinationCountyCode": "PROV",
+                                "package": {
+                                    "weight": "16",
+                                    "height": "1",
+                                    "width": "1",
+                                    "length": "1"
+                                },
+                                "productType": 3,
+                                "contentType": 1,
+                                "declaredWorth": "2333",
+                                "deliveryTime": 0,
+                                "customerCardNumber": "0"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "<p></p>\n<h4> Cuerpo de la respuesta</h4>\n<p></p>\n<ul class=\"list-group\" >\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n            Servicios de entrega disponibles\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceTypeCode</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            Código del servicio disponible;2 = PRIORITARIO (PREX), 3 = EXPRESS (CHEX), 4 = EXTENDIDO (XTEN), 5 = EXTREMOS (XTRE), 41 = ENC. GRANDES (BIGT1), 8 = SERVICIO AMPM (AMPM), 42 = ENC. GRANDES EXTENDIDO (BIGT3), 43 = LOG DEV ENC. GRANDES (BIGT1 LD), 44 = LOG DEV ENC. GRANDES EXTENDIDO (BIGT3 LD)\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceDescription</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (100)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del servicio\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.didUseVolumetricWeight</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Indica si se utilizó el peso volumétrico para calcular el peso.\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.finalWeight</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Peso final con el cual se valorizó\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceValue</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Valor en pesos del servicio de entrega\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.conditions</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (100)\n         </div>\n         <div class=\"col-md-6\">\n            Condiciones adicionales del servicio\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.deliveryType</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            tipo de tiempo de entrega\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.serviceValueDiscount</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (10)\n         </div>\n         <div class=\"col-md-6\">\n            Valor final en pesos del servicio de entrega\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>data.courierServiceOption.additionalService</label>\n         </div>\n         <div class=\"col-md-2\">\n            objeto\n         </div>\n         <div class=\"col-md-6\">\n            Servicios adicionales ofrecidos\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>statusCode</label>\n         </div>\n         <div class=\"col-md-2\">\n            integer\n         </div>\n         <div class=\"col-md-6\">\n            Código de resultado\n         </div>\n      </div>\n   </li>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>statusDescription</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (max)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del resultado\n         </div>\n      </div>\n   <li class=\"list-group-item\">\n      <div class=\"row\">\n         <div class=\"col-md-4\">\n            <label>errors</label>\n         </div>\n         <div class=\"col-md-2\">\n            string (max)\n         </div>\n         <div class=\"col-md-6\">\n            Descripción del error presentado en caso que aplique.\n         </div>\n      </div>\n   </li>\n</ul>",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/"
+                                },
+                                "example": {
+                                    "data": {
+                                        "courierServiceOptions": [
+                                            {
+                                                "serviceTypeCode": 2,
+                                                "serviceDescription": "PRIORITARIO",
+                                                "didUseVolumetricWeight": false,
+                                                "finalWeight": "16.00",
+                                                "serviceValue": "8569",
+                                                "conditions": "",
+                                                "deliveryType": 0,
+                                                "serviceValueDiscount": "8569",
+                                                "additionalServices": []
+                                            },
+                                            {
+                                                "serviceTypeCode": 3,
+                                                "serviceDescription": "EXPRESS",
+                                                "didUseVolumetricWeight": false,
+                                                "finalWeight": "16.00",
+                                                "serviceValue": "5713",
+                                                "conditions": "",
+                                                "deliveryType": 0,
+                                                "serviceValueDiscount": "5713",
+                                                "additionalServices": []
+                                            }
+                                        ]
+                                    },
+                                    "statusCode": 0,
+                                    "statusDescription": "OK",
+                                    "errors": null
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "statusCode": 90,
+                                    "statusDescription": "El JSON de entrada no es válido",
+                                    "errors": [
+                                        "Unterminated string. Expected delimiter: \". Path 'declaredWorth', line 15, position 1."
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternarErrorResponse"
+                                },
+                                "example": {
+                                    "milliseconds": 0,
+                                    "statusCode": 0,
+                                    "statusDescription": "string",
+                                    "errors": [
+                                        "string"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "RateCourierRequest": {
+                "type": "object",
+                "properties": {
+                    "originCountyCode": {
+                        "type": "string"
+                    },
+                    "destinationCountyCode": {
+                        "type": "string"
+                    },
+                    "package": {
+                        "$ref": "#/components/schemas/Package"
+                    },
+                    "productType": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "contentType": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "declaredWorth": {
+                        "type": "string"
+                    },
+                    "deliveryTime": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "example": "{\n\"originCountyCode\":\t\"LAFL\",\n\"destinationCountyCode\": \"ARIC\",\n\"package\": \n{\n\t\"weight\":\t\"1.5\",\n\t\"height\":\t\"10\",\n\t\"width\":\t\"10\",\n\t\"length\":\t\"10\"\n},\n\"productType\": 1,\n\"contentType\": 1,\n\"declaredWorth\": \"15000\",\n\"deliveryTime\":\t2\n}"
+            },
+            "Package": {
+                "type": "object",
+                "properties": {
+                    "weight": {
+                        "type": "string"
+                    },
+                    "height": {
+                        "type": "string"
+                    },
+                    "width": {
+                        "type": "string"
+                    },
+                    "length": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DefinitionResponseCourierServiceOptions": {
+                "type": "object",
+                "properties": {
+                    "serviceTypeCode": {
+                        "type": "integer",
+                        "description": "Código del servicio disponible; 3 = Día hábil siguiente (DHS), 4 = Día hábil subsiguiente (DHSS), 5 = Tercer día hábil (3DH)"
+                    },
+                    "serviceDescription": {
+                        "type": "string",
+                        "description": "Descripción del servicio"
+                    },
+                    "didUseVolumetricWeight": {
+                        "type": "boolean",
+                        "description": "Indica si se utilizó el peso volumétrico para calcular el peso."
+                    },
+                    "finalWeight": {
+                        "type": "string",
+                        "description": "Peso final con el cual se valorizó"
+                    },
+                    "serviceValue": {
+                        "type": "string",
+                        "description": "Valor en pesos del servicio de entrega, IVA incluido"
+                    },
+                    "conditions": {
+                        "type": "string",
+                        "description": "Condiciones adicionales del servicio"
+                    },
+                    "deliveryType": {
+                        "type": "integer",
+                        "description": "tipo de tiempo de entrega"
+                    },
+                    "additionalServices": {
+                        "type": "array",
+                        "description": "Servicios adicionales ofrecidos"
+                    }
+                },
+                "example": {
+                    "data": {
+                        "courierServiceOptions": [
+                            {
+                                "serviceTypeCode": 3,
+                                "serviceDescription": "DIA HABIL SIGUIENTE",
+                                "didUseVolumetricWeight": false,
+                                "finalWeight": "1.00",
+                                "serviceValue": "8042",
+                                "conditions": "",
+                                "deliveryType": 2,
+                                "additionalServices": []
+                            }
+                        ]
+                    },
+                    "statusCode": 0,
+                    "statusDescription": "OK",
+                    "errors": null
+                }
+            },
+            "DefinitionRequestCurier": {
+                "type": "object",
+                "properties": {
+                    "originCountyCode": {
+                        "type": "string",
+                        "description": "Código de la cobertura de origen, obtenido de la API Consultar Coberturas"
+                    },
+                    "destinationCountyCode": {
+                        "type": "string",
+                        "description": "Código de la cobertura de destino, obtenido de la API Consultar Coberturas"
+                    },
+                    "package": {
+                        "type": "object",
+                        "properties": {
+                            "weight": {
+                                "type": "string",
+                                "description": "Peso del paquete en kilogramos, separado por punto"
+                            },
+                            "height": {
+                                "type": "string",
+                                "description": "Alto del paquete en centímetros, separado por punto"
+                            },
+                            "width": {
+                                "type": "string",
+                                "description": "Ancho del paquete en centímetros, separado por punto"
+                            },
+                            "length": {
+                                "type": "string",
+                                "description": "Largo del paquete en centímetros, separado por punto"
+                            }
+                        },
+                        "description": "Información del paquete que se va a enviar"
+                    },
+                    "productType": {
+                        "type": "integer",
+                        "description": "Tipo de producto a enviar; 1 = Documento, 3 = Encomienda"
+                    },
+                    "contentType": {
+                        "type": "integer",
+                        "description": "Descripción del producto declarado"
+                    },
+                    "declaredWorth": {
+                        "type": "string",
+                        "description": "Valor declarado del paquete"
+                    },
+                    "deliveryTime": {
+                        "type": "integer",
+                        "description": "Servicios de entrega a consultar; 0 = Todos, 1 = Prioritarios, 2 = No prioritarios, 3 = De devolución"
+                    },
+                    "customerCardNumber": {
+                        "type": "string",
+                        "description": "Número de Tarjeta Cliente Chilexpress (TCC)"
+                    }
+                }
+            },
+            "DefinitionRequestBusiness": {
+                "type": "object",
+                "properties": {
+                    "originCountyCode": {
+                        "type": "string",
+                        "description": "Código de la cobertura de origen, obtenido de la API Consultar Coberturas"
+                    },
+                    "destinationCountyCode": {
+                        "type": "string",
+                        "description": "Código de la cobertura de destino, obtenido de la API Consultar Coberturas"
+                    },
+                    "package": {
+                        "type": "object",
+                        "properties": {
+                            "weight": {
+                                "type": "string",
+                                "description": "Peso del paquete en kilogramos, separado por punto"
+                            },
+                            "height": {
+                                "type": "string",
+                                "description": "Alto del paquete en centímetros, separado por punto"
+                            },
+                            "width": {
+                                "type": "string",
+                                "description": "Ancho del paquete en centímetros, separado por punto"
+                            },
+                            "length": {
+                                "type": "string",
+                                "description": "Largo del paquete en centímetros, separado por punto"
+                            }
+                        },
+                        "description": "Información del paquete que se va a enviar"
+                    },
+                    "productType": {
+                        "type": "integer",
+                        "description": "Tipo de producto a enviar; 1 = Documento, 3 = Encomienda"
+                    },
+                    "contentType": {
+                        "type": "integer",
+                        "description": "Descripción del producto declarado"
+                    },
+                    "declaredWorth": {
+                        "type": "string",
+                        "description": "Valor declarado del paquete"
+                    },
+                    "deliveryTime": {
+                        "type": "integer",
+                        "description": "Servicios de entrega a consultar; 0 = Todos, 1 = Prioritarios, 2 = No prioritarios, 3 = De devolución"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query"
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyHeader": []
+        },
+        {
+            "apiKeyQuery": []
+        }
+    ]
+}

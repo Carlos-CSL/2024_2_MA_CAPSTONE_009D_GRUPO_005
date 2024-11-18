@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Confirmación de Envío</h1>
+    <p>Producto: {{ producto.nombre }}</p>
+    <p>Estado del Envío: {{ resultado_envio.status }}</p>
+    <p>Número de Seguimiento: {{ resultado_envio.trackingNumber }}</p>
+    <!-- Mostrar más detalles según la estructura de la respuesta de la API -->
+</div>
+{% endblock %}

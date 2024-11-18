@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotización de Envío</title>
+</head>
+<body>
+    <h1>Cotización de Envío</h1>
+
+    <!-- Formulario para obtener comuna y dirección -->
+    <form method="post" action="{% url 'cotizar_envio' producto.id %}">
+        {% csrf_token %}
+        
+        <!-- Campo para comuna de destino -->
+        <label for="destCountyName">Comuna de destino:</label>
+        <input type="text" name="destCountyName" id="destCountyName" required><br><br>
+
+        <!-- Campo para nombre de la calle -->
+        <label for="streetName">Nombre de la calle:</label>
+        <input type="text" name="streetName" id="streetName" required><br><br>
+
+        <!-- Campo para número de la calle -->
+        <label for="streetNumber">Número de la calle:</label>
+        <input type="text" name="streetNumber" id="streetNumber" required><br><br>
+
+        <button type="submit">Calcular Costo de Envío</button>
+    </form>
+
+    <!-- Sección de resultados de cotización -->
+    {% if resultado_cotizacion %}
+        <h2>Resultados de Cotización:</h2>
+        <ul>
+            {% for option in resultado_cotizacion %}
+                <li>
+                    <strong>{{ option.serviceDescription }}:</strong> Costo de Envío - {{ option.serviceValue }} CLP
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Cobertura Real</title>
+</head>
+<body>
+    <h1>Consulta de Cobertura Real</h1>
+    
+    <!-- Formulario para ingresar Código de Región y Tipo de Cobertura -->
+    <form method="get" action="{% url 'cobertura_real' %}">
+        <label for="region_code">Código de Región:</label>
+        <input type="text" id="region_code" name="region_code" placeholder="Ejemplo: RM" required>
+        
+        <label for="type">Tipo de Cobertura:</label>
+        <select id="type" name="type">
+            <option value="0">Todas</option>
+            <option value="1">Comunas</option>
+            <option value="2">Sectores dentro de una comuna</option>
+        </select>
+        
+        <button type="submit">Consultar Cobertura</button>
+    </form>
+    
+    <!-- Mostrar resultados de la consulta -->
+    {% if cobertura_areas %}
+        <h2>Resultados:</h2>
+        <ul>
+            {% for area in cobertura_areas %}
+                <li>
+                    <strong>Código de Comuna:</strong> {{ area.countyCode }} <br>
+                    <strong>Nombre de Comuna:</strong> {{ area.countyName }} <br>
+                    <strong>Código de Región:</strong> {{ area.regionCode }} <br>
+                    <strong>Nombre de Cobertura:</strong> {{ area.coverageName }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

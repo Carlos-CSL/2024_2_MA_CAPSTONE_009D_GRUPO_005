@@ -1,0 +1,18 @@
+<!-- checkout_resumen.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- checkout_resumen.html -->
+<h1>Resumen de Compra</h1>
+<p>Producto: {{ producto.nombre }}</p>
+<p>Precio: ${{ producto.precio }}</p>
+<p>Costo de Envío: ${{ costo_envio }}</p>
+<p>Total a Pagar: ${{ total }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Proceder al Pago</button>
+</form>
+
+{% endblock %}

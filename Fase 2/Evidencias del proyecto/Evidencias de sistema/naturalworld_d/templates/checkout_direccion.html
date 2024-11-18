@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <h2>Dirección de Envío</h2>
+    <form method="post" action="{% url 'checkout_direccion' producto.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="comuna">Comuna de destino:</label>
+            <input type="text" name="comuna" id="comuna" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Calcular Costo de Envío</button>
+    </form>
+
+    {% if costo_envio %}
+        <div class="mt-3">
+            <h3>Costo de Envío Estimado: {{ costo_envio }} CLP</h3>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

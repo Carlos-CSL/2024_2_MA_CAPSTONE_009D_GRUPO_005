@@ -1,0 +1,8 @@
+<!-- confirmacion.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ mensaje }}</h2>
+<p>Gracias por tu compra. Te hemos enviado un correo con los detalles de tu pedido.</p>
+<a href="{% url 'listar_productos' %}">Volver a la tienda</a>
+{% endblock %}

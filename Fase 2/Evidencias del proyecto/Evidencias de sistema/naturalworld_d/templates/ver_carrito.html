@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<title>Carrito</title>
+<div class="container mt-5">
+    <div class="green-bordered-rounded">
+    <h1 class="text-center mb-4">Carrito de Compras</h1>
+    </div>
+    <br>
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if carrito %}
+    <div class="green-bordered-rounded">
+        <div class="table-responsive d-none d-md-block">
+            <!-- Tabla para pantallas medianas y grandes -->
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Producto</th>
+                        <th scope="col">Cantidad</th>
+                        <th scope="col">Precio Unitario</th>
+                        <th scope="col">Subtotal</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in carrito.values %}
+                    <tr>
+                        <td>{{ item.nombre }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td>${{ item.precio }}</td>
+                        <td>${{ item.cantidad|multiply:item.precio }}</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form action="{% url 'eliminar_del_carrito' item.producto_id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                </form>
+                                <form action="{% url 'restar_producto' item.producto_id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">Restar</button>
+                                </form>
+                                <form action="{% url 'agregar_al_carrito' item.producto_id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Sumar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Tarjetas para pantallas pequeñas -->
+        <div class="d-block d-md-none">
+            {% for item in carrito.values %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.nombre }}</h5>
+                    <p class="card-text">Cantidad: {{ item.cantidad }}</p>
+                    <p class="card-text">Precio Unitario: ${{ item.precio }}</p>
+                    <p class="card-text">Subtotal: ${{ item.cantidad|multiply:item.precio }}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form action="{% url 'eliminar_del_carrito' item.producto_id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                        </form>
+                        <form action="{% url 'restar_producto' item.producto_id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning btn-sm">Restar</button>
+                        </form>
+                        <form action="{% url 'agregar_al_carrito' item.producto_id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-success btn-sm">Sumar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <p class="text-end"><strong>Total: ${{ total_carrito }}</strong></p>
+        <div class="text-end">
+            <a href="{% url 'pag_productos' %}" class="btn btn-outline-info">Seguir Comprando</a>
+            <a href="{% url 'checkout' %}" class="btn btn-dark">Continuar Compra</a>
+        </div>
+    </div>
+{% else %}
+    <p>Tu carrito está vacío.</p>
+    <a href="{% url 'pag_productos' %}" class="btn btn-outline-info">Ver productos</a>
+{% endif %}
+
+<br><br>
+
+</div>
+
+<style> 
+    .green-bordered-rounded { 
+        border: 2px solid #28a745; /* Borde verde */ 
+        border-radius: 10px; /* Bordes redondeados */ 
+        padding: 20px; /* Espaciado interno */ }
+         </style>
+{% endblock %}
+

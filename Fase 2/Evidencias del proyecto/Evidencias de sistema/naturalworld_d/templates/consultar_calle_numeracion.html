@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Calle y Numeración</title>
+</head>
+<body>
+    <h1>Consulta de Calle y Numeración</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="countyName">Nombre de la Comuna:</label>
+        <input type="text" name="countyName" id="countyName" required><br><br>
+
+        <label for="streetName">Nombre de la Calle:</label>
+        <input type="text" name="streetName" id="streetName" required><br><br>
+
+        <label for="streetNumber">Número de Calle (Opcional):</label>
+        <input type="text" name="streetNumber" id="streetNumber"><br><br>
+
+        <button type="submit">Consultar Numeración</button>
+    </form>
+
+    {% if resultado_numeracion %}
+        <h2>Resultados de Numeración:</h2>
+        <ul>
+            {% for numeracion in resultado_numeracion %}
+                <li>
+                    <strong>Número:</strong> {{ numeracion.number }}<br>
+                    <strong>Latitud:</strong> {{ numeracion.latitude }}<br>
+                    <strong>Longitud:</strong> {{ numeracion.longitude }}<br>
+                    <strong>ID de Dirección:</strong> {{ numeracion.addressId }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
