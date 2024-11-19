@@ -40,7 +40,7 @@
                 <h4 class="px-4">Medicina Natural</h4>
                 <a href="{% url 'index' %}">Inicio </a>
                 <a href="{% url 'pag_productos' %}">Productos </a>
-                <a href="#">Seguimiento <span class="label-tag">NUEVO</span></a>
+                <a href="{% url 'seguimiento' %}">Seguimiento <span class="label-tag">NUEVO</span></a>
 
             </div>
 
@@ -73,7 +73,7 @@
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
         {% if perms.app.add_Producto %}
             <li><a class="dropdown-item" href="{% url 'admin_productos' %}"><img src="{% static 'img/product.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Productos</a></li>
-            <li><a class="dropdown-item" href="{% url 'login' %}"><img src="{% static 'img/pedido_icon.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Pedidos</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin_pedidos' %}"><img src="{% static 'img/pedido_icon.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Pedidos</a></li>
             <li><a class="dropdown-item" href="http://127.0.0.1:8000/admin"><img src="{% static 'img/adminezzz.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Avanzada</a></li>
         {% endif %}
         <li><a class="dropdown-item" href="{% url 'logout' %}">

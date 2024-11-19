@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-$yzvge4ciwy^+3tlv5xwu$-u2!$kb$npt$3z9xfmehbf^gslww
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','6730-181-43-124-153.ngrok-free.app']
 
 
 # Application definition
@@ -141,6 +141,10 @@ MERCADO_PAGO_ACCESS_TOKEN = "APP_USR-7989794511721795-103003-30ce8ee651d7e12a6f9
 WS_CHILE_EXPRESS_PRIMARY_KEY = os.getenv('WS_CHILE_EXPRESS_PRIMARY_KEY', '57f9c8790ca545c3b8a04e62f3248b55')
 WS_CHILE_EXPRESS_SECONDARY_KEY = os.getenv('WS_CHILE_EXPRESS_SECONDARY_KEY', '7f02726f484846488209714e28919bd2')
 
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://6730-181-43-124-153.ngrok-free.app',
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -4,8 +4,14 @@
 {% load custom_filters %}
 
 {% block content %}
+<title>Pago</title>
+<br><br><br>
 <div class="container">
-    <h2>Resumen de tu Pedido</h2>
+    <div style="padding-left: 20%; padding-right: 20%;">
+        <div class="green-bordered-rounded">
+        <h2 style="text-align: center;" >Resumen de pedido</h2>
+        </div></div>
+        <br>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -20,19 +26,20 @@
             <tr>
                 <td>{{ item.nombre }}</td>
                 <td>{{ item.cantidad }}</td>
-                <td>${{ item.precio }}</td>
-                <td>${{ item.cantidad|multiply:item.precio }}</td>
+                <td>{{ item.precio|format_currency }}</td>
+                <td>{{ item.cantidad|multiply:item.precio|format_currency }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <p><strong>Costo de Envío:</strong> ${{ costo_envio }}</p>
-    <p><strong>Total a Pagar:</strong> ${{ total_pagar }}</p>
+    <p><strong>Costo de Envío:</strong> {{ costo_envio|format_currency }}</p>
+    <p><strong>Total a Pagar:</strong> {{ total_pagar|format_currency }}</p>
     <p><strong>Dirección de Envío:</strong> {{ direccion.direccion }}, {{ direccion.calle }} {{ direccion.numero }}, {{ direccion.comuna }}</p>
-
+    <br><br>
     <!-- Botón de Pagar con Mercado Pago -->
-    <button onclick="iniciarPago()" class="btn btn-primary btn-lg">Pagar con Mercado Pago</button>
+    <button onclick="iniciarPago()" class="btn btn-outline-success btn-lg">Pagar con Mercado Pago</button>
 </div>
+<br><br><br>
 
 <!-- SDK de Mercado Pago y lógica de inicio de pago -->
 <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -66,4 +73,31 @@ function iniciarPago() {
     .catch(error => console.error('Error:', error));
 }
 </script>
+<style>
+    .form-container {
+        border: 2px solid green; /* Borde verde */
+        border-radius: 15px; /* Bordes redondeados */
+        padding: 20px; /* Espaciado interior */
+        background-color: white; /* Fondo blanco */
+        box-shadow: 0 0 10px rgba(0, 128, 0, 0.2); /* Sombra para darle profundidad */
+    }
+    
+    input.form-control {
+        border: 2px solid green; /* Borde verde */
+        border-radius: 15px; /* Bordes redondeados */
+        outline: none; /* Eliminar el outline predeterminado */
+    }
+    
+    input.form-control:focus {
+        border: 2px solid green; /* Mantener el borde verde al enfocar */
+        border-radius: 15px; /* Mantener los bordes redondeados al enfocar */
+        box-shadow: 0 0 5px rgba(0, 128, 0, 0.5); /* Outline verde */
+    }
+    
+    .green-bordered-rounded { 
+        border: 2px solid #28a745; /* Borde verde */ 
+        border-radius: 10px; /* Bordes redondeados */
+         padding: 20px; /* Espaciado interno */ 
+         background-color: #dbffe1; /* Fondo claro */ }
+    </style>
 {% endblock %}

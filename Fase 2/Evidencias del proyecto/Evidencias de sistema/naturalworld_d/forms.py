@@ -1,11 +1,18 @@
-import re
 from django import forms
+import re
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Producto, Perfil
+from .models import Producto, Perfil, Cliente
 from django.utils.translation import gettext_lazy as _
+
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['rut', 'nombre', 'email']  # Incluye los campos que deseas
+
+
 
 class RegistroForm(UserCreationForm):
     nombre = forms.CharField(max_length=30, required=True, help_text='Nombre',widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -251,6 +258,3 @@ class RegisterForm(UserCreationForm):
             celular=self.cleaned_data['celular']
         )
         return user
-
-
-

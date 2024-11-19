@@ -21,7 +21,7 @@
                             <h1 style="color: rgb(41, 44, 23);" >El Mundo de la Medicina Natural</h1>
                             <h2 style="color: green;">El Oro es de color Verde</h2>
                             <h4 class="text-danger"></h4>
-                            <p style="color: #0b180b;">Tu Medicina natural a precios increíbles</p>
+                            <p style="color: #0b180b;">Reduce el estrés y la ansiedad</p>
                             <a class="btn btn-outline-success" href="{% url 'pag_productos' %}">Ver Todos los Productos</a>
                         </div>
                         <img src="{% static 'img/Logo_principal.png' %}" class="d-block" alt="Slide 1" style="width: 17%; margin-right: 20px; margin-top: 20px; margin-bottom: 20px;">
@@ -32,9 +32,9 @@
                     <div class="d-flex justify-content-between align-items-center" style="background-color: rgb(250, 240, 226);">
                         <div class="text-white p-5">
                             <h1 style="color: rgb(41, 44, 23);">El Mundo de la Medicina Natural</h1>
-                            <h2>Productos Naturales</h2>
+                            <h2>Árbol de 7 Chakras</h2>
                             <h4 class="text-danger"></h4>
-                            <p style="color: #0b180b;">Tus piedra de la vaca a precios increíbles</p>
+                            <p style="color: #0b180b;">Equilibra tus chakras y promueve el crecimiento espiritual</p>
                             <a class="btn btn-outline-success" href="{% url 'pag_productos' %}">Ver Todos los Productos</a>
                         </div>
                         <img src="{% static 'img/Logo_principal.png' %}" class="d-block" alt="Slide 1" style="width: 17%; margin-right: 20px; margin-top: 20px; margin-bottom: 20px;">
@@ -47,7 +47,7 @@
                             <h1 style="color: rgb(41, 44, 23);">Seguimiento de pedidos</h1>
                             <h2></h2>
                             <h4 class="text-danger"></h4>
-                            <p style="color: #0b180b;">Con tu email y numero de orden puedes realizar seguimientos de tus productos </p>
+                            <p style="color: #0b180b;">Con tu numero de orden puedes realizar seguimientos de tus productos </p>
                             <button class="btn btn-outline-success">Seguimiento</button>
                         </div>
                         <img src="{% static 'img/Logo_principal.png' %}" class="d-block" alt="Slide 1" style="width: 17%; margin-right: 20px; margin-top: 20px; margin-bottom: 20px;">
@@ -63,18 +63,19 @@
 <div class="container mt-4">
     <!-- Sección de productos -->
     <div class="row mt-5">
+        <br>
         {% for producto in productos|slice:":3" %}
         <div class="col-md-4 mt-4">
             <a class="text-decoration-none text-dark">
             <div class="card product-card">
-                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="width:305px; height:200px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #28a745; border-radius: 5px;">
+                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="width:260px; height:305px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #28a745; border-radius: 5px;">
                 <div class="card-body">
                     <h5 class="card-title">{{ producto.nombre }}</h5>
                     <p class="card-text">
                         {% if producto.descuento %}
                             {{ producto.descuento }}% descuento
                         {% else %}
-                            Sin descuento
+                            Si es natural es bueno
                         {% endif %}
                     </p>
                     <p class="card-price">{{ producto.precio_formateado }}</p>

@@ -35,8 +35,8 @@
                     <tr>
                         <td>{{ item.nombre }}</td>
                         <td>{{ item.cantidad }}</td>
-                        <td>${{ item.precio }}</td>
-                        <td>${{ item.cantidad|multiply:item.precio }}</td>
+                        <td>{{ item.precio|format_currency }}</td>
+                        <td>{{ item.cantidad|multiply:item.precio|format_currency }}</td>
                         <td>
                             <div class="d-flex flex-wrap gap-2">
                                 <form action="{% url 'eliminar_del_carrito' item.producto_id %}" method="post">
@@ -47,7 +47,7 @@
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-outline-warning btn-sm">Restar</button>
                                 </form>
-                                <form action="{% url 'agregar_al_carrito' item.producto_id %}" method="post">
+                                <form action="{% url 'agregar_al_carrito_2' item.producto_id %}" method="post">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-outline-success btn-sm">Sumar</button>
                                 </form>
@@ -66,8 +66,8 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ item.nombre }}</h5>
                     <p class="card-text">Cantidad: {{ item.cantidad }}</p>
-                    <p class="card-text">Precio Unitario: ${{ item.precio }}</p>
-                    <p class="card-text">Subtotal: ${{ item.cantidad|multiply:item.precio }}</p>
+                    <p class="card-text">Precio Unitario: {{ item.precio|format_currency }}</p>
+                    <p class="card-text">Subtotal: ${{ item.cantidad|multiply:item.precio|format_currency }}</p>
                     <div class="d-flex flex-wrap gap-2">
                         <form action="{% url 'eliminar_del_carrito' item.producto_id %}" method="post">
                             {% csrf_token %}
@@ -77,7 +77,7 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-warning btn-sm">Restar</button>
                         </form>
-                        <form action="{% url 'agregar_al_carrito' item.producto_id %}" method="post">
+                        <form action="{% url 'agregar_al_carrito_2' item.producto_id %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-success btn-sm">Sumar</button>
                         </form>
@@ -87,15 +87,17 @@
             {% endfor %}
         </div>
 
-        <p class="text-end"><strong>Total: ${{ total_carrito }}</strong></p>
+        <p class="text-end"><strong>Total: {{ total_carrito|format_currency }}</strong></p>
         <div class="text-end">
             <a href="{% url 'pag_productos' %}" class="btn btn-outline-info">Seguir Comprando</a>
             <a href="{% url 'checkout' %}" class="btn btn-dark">Continuar Compra</a>
         </div>
     </div>
 {% else %}
+<br><Br><br><Br><br><br><br><br>
     <p>Tu carrito está vacío.</p>
     <a href="{% url 'pag_productos' %}" class="btn btn-outline-info">Ver productos</a>
+    <br><br><Br><br><br>
 {% endif %}
 
 <br><br>
@@ -109,4 +111,5 @@
         padding: 20px; /* Espaciado interno */ }
          </style>
 {% endblock %}
+
 

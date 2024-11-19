@@ -2,68 +2,71 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<br><br>
 <title>Checkout</title>
+<br>
 <div style="padding-left: 20%; padding-right: 20%;">
-<div class="green-bordered-rounded">
-<h2 style="text-align: center;" >Proceso de Checkout</h2>
-</div></div>
+    <div class="green-bordered-rounded">
+    <h2 style="text-align: center;" >Proceso de Checkout</h2>
+    </div></div>
 {% if error %}
     <p style="color:red;">{{ error }}</p>
 {% endif %}
 <div class="container mt-4"> 
-    <form method="post" > 
-        {% csrf_token %} 
-        <div class="mb-3"> 
-            <label for="comuna" class="form-label">Comuna:</label> 
-            <input type="text" id="comuna" name="comuna" class="form-control" required> 
-        </div> 
-        <div class="mb-3"> 
-            <label for="direccion" class="form-label">Dirección:</label> 
-            <input type="text" id="direccion" name="direccion" class="form-control" required>
-         </div> 
-         <div class="mb-3">
-             <label for="calle" class="form-label">Calle:</label> 
-             <input type="text" id="calle" name="calle" class="form-control" required> 
-            </div> 
-            <div class="mb-3"> 
-                <label for="numero" class="form-label">Número:</label>
-                 <input type="text" id="numero" name="numero" class="form-control" required>
-                 </div>
-                 
-                 <div class="text-end">
-                    <a class="btn btn-outline-danger" onclick="history.back()">Volver Atras</a> 
-                 <button type="submit" class="btn btn-outline-success">Continuar al Pago</button> 
-                </div>
-    </form> 
+<form method="post">
+    {% csrf_token %}
+    
+    <label for="rut">RUT:</label>
+    <input class="form-control" type="text" id="rut" name="rut" placeholder="Ingrese su RUT" required>
+
+    <label for="mail_cliente">Email:</label>
+    <input class="form-control" type="email" id="mail_cliente" name="mail_cliente" placeholder="Ingrese su email" required>
+
+    <label for="comuna">Comuna:</label>
+    <input class="form-control" type="text" id="comuna" name="comuna" required>
+
+    <label for="direccion">Dirección:</label>
+    <input class="form-control" type="text" id="direccion" name="direccion" required>
+
+    <label for="calle">Calle:</label>
+    <input class="form-control" type="text" id="calle" name="calle" required>
+
+    <label for="numero">Número:</label>
+    <input class="form-control" type="text" id="numero" name="numero" required>
+    <br>
+    <a class="btn btn-outline-danger" onclick="history.back()">Volver Atrás</a> 
+    <button type="submit" class="btn btn-outline-success">Continuar al Pago</button>
+</form>
+<p><strong>Nota:</strong> El ID del cliente será generado automáticamente utilizando el RUT ingresado.</p>
 </div>
-<br><br>
+
+
+
 <style>
-.form-container {
-    border: 2px solid green; /* Borde verde */
-    border-radius: 15px; /* Bordes redondeados */
-    padding: 20px; /* Espaciado interior */
-    background-color: white; /* Fondo blanco */
-    box-shadow: 0 0 10px rgba(0, 128, 0, 0.2); /* Sombra para darle profundidad */
-}
-
-input.form-control {
-    border: 2px solid green; /* Borde verde */
-    border-radius: 15px; /* Bordes redondeados */
-    outline: none; /* Eliminar el outline predeterminado */
-}
-
-input.form-control:focus {
-    border: 2px solid green; /* Mantener el borde verde al enfocar */
-    border-radius: 15px; /* Mantener los bordes redondeados al enfocar */
-    box-shadow: 0 0 5px rgba(0, 128, 0, 0.5); /* Outline verde */
-}
-
-.green-bordered-rounded { 
-    border: 2px solid #28a745; /* Borde verde */ 
-    border-radius: 10px; /* Bordes redondeados */
-     padding: 20px; /* Espaciado interno */ 
-     background-color: #dbffe1; /* Fondo claro */ }
-</style>
+    .form-container {
+        border: 2px solid green; /* Borde verde */
+        border-radius: 15px; /* Bordes redondeados */
+        padding: 20px; /* Espaciado interior */
+        background-color: white; /* Fondo blanco */
+        box-shadow: 0 0 10px rgba(0, 128, 0, 0.2); /* Sombra para darle profundidad */
+    }
+    
+    input.form-control {
+        border: 2px solid green; /* Borde verde */
+        border-radius: 15px; /* Bordes redondeados */
+        outline: none; /* Eliminar el outline predeterminado */
+    }
+    
+    input.form-control:focus {
+        border: 2px solid green; /* Mantener el borde verde al enfocar */
+        border-radius: 15px; /* Mantener los bordes redondeados al enfocar */
+        box-shadow: 0 0 5px rgba(0, 128, 0, 0.5); /* Outline verde */
+    }
+    
+    .green-bordered-rounded { 
+        border: 2px solid #28a745; /* Borde verde */ 
+        border-radius: 10px; /* Bordes redondeados */
+         padding: 20px; /* Espaciado interno */ 
+         background-color: #dbffe1; /* Fondo claro */ }
+    </style>
 
 {% endblock %}

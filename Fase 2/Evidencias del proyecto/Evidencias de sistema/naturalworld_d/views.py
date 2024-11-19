@@ -1,19 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Producto, Comentario, Perfil
-from django import template
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-import json
-import mercadopago
+from django.contrib.auth import authenticate, login
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .utils import consultar_calles
-from .utils import georreferenciar_direccion
-from .utils import consultar_cobertura_real, cotizar_envio
-from .utils import consultar_cobertura_real
+from django import template
+import json
+import mercadopago
+from .models import Producto, Comentario, PedidoProducto, Pedido, Perfil
 from .forms import LoginForm, RegistroForm, ProductoForm
-from django.contrib.auth import authenticate, login
+from .utils import consultar_calles, georreferenciar_direccion, consultar_cobertura_real, cotizar_envio
+import locale
 
 
 def pag_productos(request):
@@ -75,6 +73,50 @@ def registro(request):
     return render(request, 'registration/registro.html', {'form': form})
 
 @login_required
+def admin_pedidos(request):
+    pedido = Pedido.objects.all()
+    datos = {
+        'pedido': pedido
+    }
+    return render(request, 'admin_pedidos.html', datos)
+
+def actualizar_estado_pedido(request, pedido_id):
+    # Verificamos que el pedido_id es un UUID válido
+    try:
+        pedido = Pedido.objects.get(id=pedido_id)  # Aquí Django convertirá automáticamente el UUID en el filtro
+    except Pedido.DoesNotExist:
+        # Redirige si no se encuentra el pedido
+        return redirect('admin_pedidos')  
+
+    if request.method == "POST":
+        # Obtén el nuevo estado del formulario
+        nuevo_estado = request.POST.get('estado_pedido')
+        # Actualiza el estado del pedido
+        pedido.estado_pedido = nuevo_estado
+        pedido.save()  # Guarda el pedido con el nuevo estado
+        return redirect('admin_pedidos')  # Redirige después de actualizar el estado
+
+    # Si la petición es GET, muestra el pedido con su estado actual (opcional, dependiendo de tu implementación)
+    return render(request, 'admin_pedidos.html', {'pedido': pedido})
+
+def seguimiento(request):
+    pedido = None
+    error = None
+    if request.method == "POST":
+        # Obtener el número de orden desde el formulario
+        numero_orden = request.POST.get('numero_orden')
+
+        try:
+            # Buscar el pedido por el número de orden
+            pedido = Pedido.objects.get(numero_orden=numero_orden)
+            messages.success(request, "Estado del pedido actualizado")
+        except Pedido.DoesNotExist:
+            # Si no se encuentra el pedido, mostrar un mensaje de error
+            error = "No se encontró un pedido con ese número de orden."
+
+    return render(request, 'seguimiento.html', {'pedido': pedido, 'error': error})
+
+@login_required
 def admin_productos(request):
     producto = Producto.objects.all()
     datos = {
@@ -113,6 +155,8 @@ def admin_mod_producto(request, id):
             return redirect ('admin_productos')
         
     return render(request, 'admin_mod_producto.html', datos)
+
+
 
 # Registro de filtro para formateo de moneda en templates
 register = template.Library()
@@ -202,20 +246,80 @@ import mercadopago
 import json
 from .carrito import Carrito
 
+import mercadopago
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .carrito import Carrito  # Asegúrate de tener el módulo Carrito configurado
+
+from django.shortcuts import get_object_or_404
+from .models import Pedido
+from django.shortcuts import get_object_or_404
+
+from django.shortcuts import get_object_or_404
+
+
+import uuid
+from django.shortcuts import get_object_or_404
+# Asegúrate de que no hay errores antes de esta línea
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Producto, Pedido, Pago
+from .carrito import Carrito  # Asegúrate de que el archivo `carrito.py` esté en el mismo directorio
+import json  # Correcto
+import uuid  # Correcto
+
+
+
+@csrf_exempt
 def crear_preferencia(request):
     if request.method == 'POST':
         sdk = mercadopago.SDK("APP_USR-7989794511721795-103003-30ce8ee651d7e12a6f9180d1369215df-2065223385")
-
         carrito = Carrito(request)
 
-        # Obtener y verificar el costo de envío desde el JSON del cuerpo de la solicitud
+        # Verificar si ya existe un pedido único para esta sesión o cliente
+        pedido_id = request.session.get('pedido_id')
+        cliente = request.user if request.user.is_authenticated else None
+
+        if pedido_id:
+            try:
+                pedido = Pedido.objects.get(id=pedido_id)
+            except Pedido.DoesNotExist:
+                pedido = None
+        else:
+            pedido = Pedido.objects.filter(cliente=cliente, total=0.0).first()
+
+        if not pedido:
+            pedido = Pedido.objects.create(cliente=cliente, total=0.0)
+            request.session['pedido_id'] = str(pedido.id)
+
         try:
             data = json.loads(request.body)
             costo_envio = float(data.get('costo_envio', 0))
         except (ValueError, json.JSONDecodeError):
             return JsonResponse({"error": "Costo de envío no válido"}, status=400)
 
-        # Construir los items en base a cada producto en el carrito, agregando el costo de envío como un item separado
+        # Actualizar el total del pedido
+        pedido.total = carrito.total() + costo_envio
+        pedido.save()
+
+        # Asociar todos los productos del carrito al mismo pedido
+        for item in carrito.carrito.values():
+            producto = Producto.objects.get(id=item['producto_id'])
+            pedido_producto, creado = PedidoProducto.objects.get_or_create(
+                pedido=pedido,
+                producto=producto,
+                defaults={
+                    'cantidad': item['cantidad'],
+                    'precio_unitario': float(item['precio'])
+                }
+            )
+            if not creado:
+                pedido_producto.cantidad += item['cantidad']
+                pedido_producto.save()
+
+        # Configurar preferencia de pago
         items = [
             {
                 "title": item['nombre'],
@@ -225,7 +329,6 @@ def crear_preferencia(request):
             for item in carrito.carrito.values()
         ]
 
-        # Agregar el costo de envío como un item adicional
         if costo_envio > 0:
             items.append({
                 "title": "Costo de Envío",
@@ -233,22 +336,21 @@ def crear_preferencia(request):
                 "unit_price": costo_envio
             })
 
-        # Configura la preferencia de pago
         preference_data = {
             "items": items,
             "back_urls": {
-                "success": "https://yourdomain.com/success/",
-                "failure": "https://yourdomain.com/failure/",
-                "pending": "https://yourdomain.com/pending/"
+                "success": "https://6730-181-43-124-153.ngrok-free.app/success/",
+                "failure": "https://6730-181-43-124-153.ngrok-free.app/failure/",
+                "pending": "https://6730-181-43-124-153.ngrok-free.app/pending/"
             },
             "auto_return": "approved",
-            "notification_url": "https://yourdomain.com/producto/webhook/",
-            "external_reference": f"carrito-{request.session.session_key}"
+            "notification_url": "https://6730-181-43-124-153.ngrok-free.app/producto/recibir-pago/",
+            "external_reference": f"pedido-{pedido.id}",
         }
 
-        # Crear la preferencia en Mercado Pago
         preference_response = sdk.preference().create(preference_data)
         if "response" in preference_response and "id" in preference_response["response"]:
+            carrito.limpiar()
             return JsonResponse({"preference_id": preference_response["response"]["id"]})
         else:
             print("Error en la respuesta de Mercado Pago:", preference_response)
@@ -258,20 +360,7 @@ def crear_preferencia(request):
 
 
 
-#def buscar_calle(request):
-    if request.method == 'POST':
-        county_name = request.POST.get('countyName')
-        street_name = request.POST.get('streetName')
-        resultado = consultar_calles(county_name, street_name)
-
-        # Procesa y pasa los resultados al template
-        if "error" in resultado:
-            return render(request, 'template_a_mostrar.html', {'error': resultado["error"]})
-        
-        calles = resultado.get("streets", [])  # Asegúrate de extraer la lista de calles
-        return render(request, 'consultar_calles.html', {'calles': calles})
-    
-    return render(request, 'consultar_calles.html')
+   
 
 from .utils import consultar_calles, cotizar_envio
 
@@ -735,9 +824,33 @@ def agregar_al_carrito(request, producto_id):
         print("Error al añadir producto al carrito:", e)
         return JsonResponse({'success': False, 'message': 'Error interno al procesar la solicitud.'})
 
+def agregar_al_carrito_2(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    carrito = Carrito(request)
+
+    try:
+        if carrito.add(producto):
+            messages.success(request, f"{producto.nombre} ha sido agregado al carrito.")
+        else:
+            messages.error(request, "No hay suficiente stock disponible.")
+    except Exception as e:
+        print("Error al añadir producto al carrito:", e)
+        messages.error(request, "Error interno al procesar la solicitud.")
+    
+    return redirect('ver_carrito')
+
+
 def ver_carrito(request):
     carrito = Carrito(request)
-    return render(request, 'ver_carrito.html', {'carrito': carrito.carrito})
+    
+    # Calcular el total del carrito
+    total_carrito = sum(float(item['cantidad']) * float(item['precio']) for item in carrito.carrito.values())
+    
+    # Pasar 'carrito' y 'total_carrito' al contexto
+    return render(request, 'ver_carrito.html', {
+        'carrito': carrito.carrito,
+        'total_carrito': total_carrito
+    })
 
 
 
@@ -778,6 +891,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .carrito import Carrito
 from .utils import cotizar_envio, consultar_cobertura_real, obtener_datos_carrito, georreferenciar_direccion  # Asegúrate de importar la función
 from .models import Producto
+from .models import Cliente
+
 
 import logging
 import json
@@ -786,21 +901,47 @@ logger = logging.getLogger(__name__)
 
 # views.py
 
+from django.shortcuts import render, redirect
+from .models import Pedido, Cliente, Producto, PedidoProducto
+from .utils import cotizar_envio, georreferenciar_direccion, obtener_datos_carrito, consultar_cobertura_real
+import logging
+import json
+
 def checkout(request):
     carrito = Carrito(request)
     if not carrito.carrito:
         return redirect('ver_carrito')
 
     if request.method == 'POST':
+        # Capturar el RUT junto con los otros datos
+        rut = request.POST.get('rut')
+        email = request.POST.get('mail_cliente')  # Capturar el email del cliente
         comuna = request.POST.get('comuna')
         direccion = request.POST.get('direccion')
         calle = request.POST.get('calle')
         numero = request.POST.get('numero')
 
-        if not comuna or not direccion or not calle or not numero:
+        # Verificar que todos los campos sean válidos
+        if not rut or not comuna or not direccion or not calle or not numero:
             return render(request, 'checkout.html', {'error': "Todos los campos son obligatorios."})
 
-        # Georeferenciar la dirección
+        # Validación básica del RUT (puedes mejorarla según tus reglas de validación)
+        if len(rut) < 7 or not rut.replace(".", "").replace("-", "").isdigit():
+            return render(request, 'checkout.html', {'error': "El RUT ingresado no es válido."})
+
+        # Crear o actualizar cliente en la base de datos
+        cliente, created = Cliente.objects.get_or_create(
+            rut=rut,
+            defaults={'email': email, 'nombre': 'Cliente Nuevo'}  # Cambia según lo necesario
+        )
+        if not created:
+            cliente.email = email  # Actualizar email si ya existe el cliente
+            cliente.save()
+
+        # Asociar cliente con un usuario registrado si existe
+        user = cliente.user if cliente.user else None
+
+        # Georreferenciar la dirección
         georef = georreferenciar_direccion(comuna, calle, numero)
         logger.debug(f"Resultado de georreferenciar_direccion: {georef}")
 
@@ -830,21 +971,12 @@ def checkout(request):
             logger.error(f"datos_paquete faltan claves esperadas. Claves recibidas: {datos_paquete.keys()}")
             return render(request, 'checkout.html', {'error': "Datos del carrito incompletos."})
 
-        # Integrar las APIs de Chilexpress
-        region_code = 'RM'  # Región Metropolitana
-        tipo_cobertura = 1   # Tipo de cobertura (1 para comunas)
-
         # Código de cobertura para la comuna de origen
-        resultado_cobertura_real_origen = consultar_cobertura_real(region_code, tipo_cobertura)
+        resultado_cobertura_real_origen = consultar_cobertura_real('RM', 1)  # Región Metropolitana
         logger.debug(f"resultado_cobertura_real_origen: {resultado_cobertura_real_origen}")
 
-        if not isinstance(resultado_cobertura_real_origen, list):
-            logger.error("resultado_cobertura_real_origen no es una lista.")
-            return render(request, 'checkout.html', {'error': "Error al obtener cobertura de origen."})
-
-        # Asegurarse de que cada elemento en la lista es un diccionario
         origin_code = next(
-            (area['countyCode'] for area in resultado_cobertura_real_origen 
+            (area['countyCode'] for area in resultado_cobertura_real_origen
              if isinstance(area, dict) and area.get('countyName', '').upper() == "EL MONTE"),
             None
         )
@@ -854,15 +986,11 @@ def checkout(request):
             return render(request, 'checkout.html', {'error': "No se encontró el código de cobertura para la comuna de origen."})
 
         # Código de cobertura para la comuna de destino
-        resultado_cobertura_real_destino = consultar_cobertura_real(region_code, tipo_cobertura)
+        resultado_cobertura_real_destino = consultar_cobertura_real('RM', 1)
         logger.debug(f"resultado_cobertura_real_destino: {resultado_cobertura_real_destino}")
 
-        if not isinstance(resultado_cobertura_real_destino, list):
-            logger.error("resultado_cobertura_real_destino no es una lista.")
-            return render(request, 'checkout.html', {'error': "Error al obtener cobertura de destino."})
-
         destination_code = next(
-            (area['countyCode'] for area in resultado_cobertura_real_destino 
+            (area['countyCode'] for area in resultado_cobertura_real_destino
              if isinstance(area, dict) and area.get('countyName', '').upper() == comuna.upper()),
             None
         )
@@ -887,52 +1015,40 @@ def checkout(request):
         resultado = cotizar_envio(origin_code, destination_code, package, product_type, declared_worth)
         logger.debug(f"resultado de cotizar_envio: {resultado}")
 
-        if not isinstance(resultado, dict):
-            logger.error("resultado de cotizar_envio no es un diccionario.")
-            return render(request, 'checkout.html', {'error': "Error al cotizar el envío."})
-
-        resultado_cotizacion = resultado.get("data", {}).get("courierServiceOptions", [])
-        logger.debug(f"resultado_cotizacion: {resultado_cotizacion}")
-
-        if not isinstance(resultado_cotizacion, list):
-            logger.error("courierServiceOptions no es una lista.")
-            resultado_cotizacion = []
-
-        # Seleccionar la opción "EXPRESS"
         resultado_cotizacion_filtrado = [
-            option for option in resultado_cotizacion
+            option for option in resultado.get("data", {}).get("courierServiceOptions", [])
             if isinstance(option, dict) and option.get("serviceDescription") == "EXPRESS"
         ]
-
-        logger.debug(f"resultado_cotizacion_filtrado: {resultado_cotizacion_filtrado}")
 
         if not resultado_cotizacion_filtrado:
             logger.error("No se encontraron opciones de envío disponibles para 'EXPRESS'.")
             return render(request, 'checkout.html', {'error': "No se encontraron opciones de envío disponibles para 'EXPRESS'."})
 
-        try:
-            costo_envio = float(resultado_cotizacion_filtrado[0]['serviceValue'])
-        except (KeyError, ValueError, TypeError) as e:
-            logger.error(f"Error al obtener serviceValue: {e}")
-            return render(request, 'checkout.html', {'error': "Error al obtener el costo de envío."})
+        costo_envio = float(resultado_cotizacion_filtrado[0].get('serviceValue', 0))
+        total_pagar = sum(
+            float(item.get('cantidad', 0)) * float(item.get('precio', 0))
+            for item in carrito.carrito.values()
+        ) + costo_envio
 
-        # Cálculo total_pagar
-        total_pagar = 0
+        # Crear el pedido
+        pedido = Pedido.objects.create(
+            cliente=user,  # Asigna el usuario si está registrado
+            total=total_pagar
+        )
+
+        # Añadir productos al pedido
         for item in carrito.carrito.values():
-            if isinstance(item, dict) and 'cantidad' in item and 'precio' in item:
-                try:
-                    cantidad = float(item['cantidad'])
-                    precio = float(item['precio'])
-                    total_pagar += cantidad * precio
-                except (ValueError, TypeError) as e:
-                    logger.error(f"Error al convertir cantidad/precio: {e} en item: {item}")
-            else:
-                logger.warning(f"Item inválido en el carrito: {item}")
-        total_pagar += costo_envio
+            producto = Producto.objects.get(id=item['producto_id'])  # Ajusta según tu modelo
+            PedidoProducto.objects.create(
+                pedido=pedido,
+                producto=producto,
+                cantidad=item['cantidad'],
+                precio_unitario=item['precio']  # Cambiado a precio_unitario
+            )
 
-        logger.debug(f"total_pagar calculado: {total_pagar}")
-
-        # Guardar los datos necesarios en la sesión
+        # Guardar los datos necesarios en la sesión, incluyendo el cliente
+        request.session['cliente_rut'] = cliente.rut
+        request.session['cliente_email'] = cliente.email
         request.session['costo_envio'] = costo_envio
         request.session['total_pagar'] = total_pagar
         request.session['direccion'] = {
@@ -1044,3 +1160,94 @@ def pago(request):
             'direccion': direccion,
         }
         return render(request, 'pago.html', contexto)
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+import mercadopago
+from .models import Pago  # Asegúrate de tener el modelo Pago configurado correctamente
+from .models import Pedido, Producto, Pago  # Asegúrate de incluir todos los modelos necesarios
+
+@csrf_exempt
+@csrf_exempt
+@csrf_exempt
+
+def recibir_pago(request):
+    if request.method == "POST":
+        try:
+            # Leer el cuerpo de la solicitud
+            data = json.loads(request.body)
+            event_type = data.get("type", "")
+            data_payload = data.get("data", {})
+            payment_id = data_payload.get("id")
+
+            if event_type == "payment" and payment_id:
+                sdk = mercadopago.SDK("APP_USR-7989794511721795-103003-30ce8ee651d7e12a6f9180d1369215df-2065223385")
+                payment_info = sdk.payment().get(payment_id)
+
+                status = payment_info["response"].get("status", "")
+                status_detail = payment_info["response"].get("status_detail", "")
+                external_reference = payment_info["response"].get("external_reference", "")
+                monto = payment_info["response"].get("transaction_amount")
+
+                print(f"Pago ID={payment_id}, Estado={status}, Detalle={status_detail}, Referencia={external_reference}")
+
+                # Validar referencia externa
+                if external_reference.startswith("pedido-"):
+                    pedido_id = external_reference.replace("pedido-", "")
+                else:
+                    raise ValueError("Referencia externa inválida")
+
+                # Validar que el pedido_id es un UUID válido
+                try:
+                    uuid.UUID(pedido_id)
+                except ValueError:
+                    raise ValueError(f"'{pedido_id}' no es un UUID válido.")
+
+                # Obtener el pedido
+                pedido = Pedido.objects.get(id=pedido_id)
+
+                if status == "approved":
+                    pedido.estado = "pagado"
+                    pedido.save()
+
+                    # Actualizar el stock basado en los productos relacionados al pedido
+                    productos_pedido = PedidoProducto.objects.filter(pedido=pedido)
+                    for pp in productos_pedido:
+                        producto = pp.producto
+                        cantidad = pp.cantidad
+                        if producto.stock >= cantidad:
+                            producto.stock -= cantidad
+                            producto.save()
+                            print(f"Stock actualizado para {producto.nombre}: {producto.stock} unidades restantes.")
+                        else:
+                            print(f"Stock insuficiente para {producto.nombre}.")
+                            raise ValueError(f"Stock insuficiente para {producto.nombre}. Pedido no puede completarse.")
+
+                    print("Pedido procesado y stock actualizado correctamente.")
+
+                elif status == "pending":
+                    pedido.estado = "pendiente"
+                    pedido.save()
+                elif status == "rejected":
+                    pedido.estado = "cancelado"
+                    pedido.save()
+
+                # Crear o actualizar el registro de pago
+                Pago.objects.update_or_create(
+                    pedido=pedido,
+                    defaults={
+                        "id_pago": payment_id,
+                        "estado": status,
+                        "detalle_estado": status_detail,
+                        "monto": monto,
+                    }
+                )
+
+            return JsonResponse({"status": "success"}, status=200)
+
+        except Exception as e:
+            print(f"Error procesando el Webhook: {e}")
+            return JsonResponse({"error": "Error interno del servidor"}, status=500)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)

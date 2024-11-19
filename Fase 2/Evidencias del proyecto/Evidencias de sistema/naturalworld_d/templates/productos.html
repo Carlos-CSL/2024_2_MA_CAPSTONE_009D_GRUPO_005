@@ -23,7 +23,7 @@
             <div class="col-md-4 mt-4">
                 <div class="card product-card">
                     <a href="{% url 'producto_detalle' producto_id=producto.id %}" class="text-decoration-none text-dark">
-                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="width:305px; height:200px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #000000; border-radius: 5px;">
+                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="width:260px; height:305px; object-fit:cover; display:block; margin-left:auto; margin-right:auto; border: 2px solid #000000; border-radius: 5px;">
                         <div class="card-body">
                             <h5 class="card-title">{{ producto.nombre }}</h5>
                             <p class="card-text" style="color: bisque;">

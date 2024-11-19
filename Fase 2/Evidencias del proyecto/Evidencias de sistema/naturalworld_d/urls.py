@@ -1,8 +1,7 @@
 from django.urls import path
 from . import views
-from .views import pag_productos, login_view, admin_productos, admin_add_producto, admin_mod_producto, delete_producto
 from django.contrib.auth import views as auth_views
-
+from uuid import UUID
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -31,15 +30,23 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('productos/', views.listar_productos, name='listar_productos'),
     path('pago/', views.pago, name='pago'),
+    path('producto/recibir-pago/', views.recibir_pago, name='recibir_pago'),
     path('pag_productos/', views.pag_productos, name='pag_productos'),
     path('buscar/', views.buscar_producto, name='buscar_producto'),
-    path('login/', login_view, name='login'),
-    path('admin_productos/', admin_productos, name='admin_productos'),
+    path('admin_productos/', views.admin_productos, name='admin_productos'),
+    path('login/', views.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('admin_add_producto/', admin_add_producto, name='admin_add_producto'),
-    path('delete_producto/<id>', delete_producto, name="delete_producto"),
-    path('admin_mod_producto/<id>', admin_mod_producto, name="admin_mod_producto"),
+    path('login/', views.login_view, name='login'),
+    path('admin_productos/', views.admin_productos, name='admin_productos'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('admin_add_producto/', views.admin_add_producto, name='admin_add_producto'),
+    path('delete_producto/<id>', views.delete_producto, name="delete_producto"),
+    path('admin_mod_producto/<id>', views.admin_mod_producto, name="admin_mod_producto"),
     path('registro/', views.registro, name='registro'),
+    path('agregar_al_carrito_2/<int:producto_id>/', views.agregar_al_carrito_2, name='agregar_al_carrito_2'),
+    path('admin_pedidos/', views.admin_pedidos, name='admin_pedidos'),
+    path('actualizar_estado_pedido/<uuid:pedido_id>/', views.actualizar_estado_pedido, name='actualizar_estado_pedido'),
+    path('seguimiento/', views.seguimiento, name='seguimiento'),
 
 ]
 

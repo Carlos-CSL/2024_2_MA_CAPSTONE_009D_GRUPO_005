@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% load custom_filters %}
+<title>Seguimiento del pedido</title>
+
+<Br><Br>
+<div class="container">
+    <h2>Buscar Pedido</h2>
+    <form method="post" action="{% url 'seguimiento' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="numero_orden">Número de Orden:</label>
+            <input type="text" name="numero_orden" id="numero_orden" class="form-control" required>
+        </div>
+        <br>
+        <a class="btn btn-outline-danger" onclick="history.back()">Volver Atrás </a>
+        <button type="submit" class="btn btn-outline-success">Buscar Pedido</button>
+    </form>
+
+    {% if pedido %}
+        <h3>Detalles del Pedido</h3>
+        <table class="table">
+            <tr>
+                <th>Número de Orden</th>
+                <td>{{ pedido.numero_orden }}</td>
+            </tr>
+            <tr>
+                <th>Cliente</th>
+                <td>{{ pedido.cliente }}</td>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <td>{{ pedido.total|format_currency }}</td>
+            </tr>
+            <tr>
+                <th>Fecha de Creación</th>
+                <td>{{ pedido.fecha_creacion }}</td>
+            </tr>
+            <tr>
+                <th>Estado</th>
+                <td>{{ pedido.estado_pedido }}</td>
+            </tr>
+        </table>
+    {% elif error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
+</div>
+<br><Br><br><br><br><br><br><br><br><Br><Br><br><Br><Br><Br><br>
+
+
+
+
+{% endblock %}

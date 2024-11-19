@@ -158,45 +158,115 @@ def georreferenciar_direccion(county_name, street_name, number):
 
 
 from django.conf import settings
-
 def obtener_token():
+    """
+    Obtiene un token de acceso para la API de Chilexpress.
+    """
     url = "https://api.wschilexpress.com/oauth2/token"
     payload = {
         'grant_type': 'client_credentials',
-        'client_id': settings.WS_CHILE_EXPRESS_PRIMARY_KEY,
-        'client_secret': settings.WS_CHILE_EXPRESS_SECONDARY_KEY,
+        'client_id': "YOUR_CLIENT_ID",  # Reemplaza con tu clave primaria
+        'client_secret': "YOUR_CLIENT_SECRET"  # Reemplaza con tu clave secundaria
     }
-    response = requests.post(url, data=payload)
-    response.raise_for_status()
-    return response.json().get('access_token')
-def obtener_token():
-    url = "https://api.wschilexpress.com/oauth2/token"
-    payload = {
-        'grant_type': 'client_credentials',
-        'client_id': settings.WS_CHILE_EXPRESS_PRIMARY_KEY,
-        'client_secret': settings.WS_CHILE_EXPRESS_SECONDARY_KEY,
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
-    response = requests.post(url, data=payload)
-    response.raise_for_status()
-    return response.json().get('access_token')
+
+    try:
+        response = requests.post(url, data=payload, headers=headers)
+        response.raise_for_status()
+        return response.json().get('access_token')
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Error al obtener el token: {str(e)}")
 
 
-def generar_envio(origin_code, destination_code, package, product_type, declared_worth):
-    url = "https://api.wschilexpress.com/rest/transport-orders-api/v1/shipments"
+def generar_envio(
+    customer_card_number,
+    origin_code,
+    destination_code,
+    package_details,
+    contact_details,
+    label_type=2,
+    marketplace_rut=None,
+    seller_rut=None,
+    api_key="YOUR_API_KEY",
+    api_base_url="https://testservices.wschilexpress.com/transport-orders/api/v1.0/transport-orders"
+):
+    """
+    Genera un envío en la API de Chilexpress.
+
+    :param customer_card_number: Número de Tarjeta Cliente Chilexpress (TCC).
+    :param origin_code: Código de cobertura de origen obtenido de la API Consultar Coberturas.
+    :param destination_code: Código de cobertura de destino obtenido de la API Consultar Coberturas.
+    :param package_details: Detalles del paquete (peso, dimensiones, etc.).
+    :param contact_details: Detalles de contacto del remitente y destinatario.
+    :param label_type: Tipo de etiqueta (0 = Solo Datos, 1 = Impresora Zebra, 2 = Imagen Binaria).
+    :param marketplace_rut: Rut del Marketplace (opcional).
+    :param seller_rut: Rut del vendedor (opcional).
+    :param api_key: Clave de suscripción para la API.
+    :param api_base_url: URL base de la API de generación de envíos.
+    :return: Respuesta de la API de Chilexpress o un error.
+    """
     headers = {
         'Authorization': f'Bearer {obtener_token()}',
         'Content-Type': 'application/json',
+        'Ocp-Apim-Subscription-Key': api_key,
     }
-    data = {
-        "originCountyCode": origin_code,
-        "destinationCountyCode": destination_code,
-        "package": package,
-        "productType": product_type,
-        "declaredWorth": declared_worth,
+
+    # Construcción del cuerpo de la solicitud
+    payload = {
+        "header": {
+            "customerCardNumber": customer_card_number,
+            "countyOfOriginCoverageCode": origin_code,
+            "labelType": label_type,
+        },
+        "details": [{
+            "addresses": [{
+                "countyCoverageCode": destination_code,
+                "streetName": contact_details["streetName"],
+                "streetNumber": contact_details.get("streetNumber", ""),
+                "supplement": contact_details.get("supplement", ""),
+                "addressType": "DEST",  # Tipo de dirección: DEST = Entrega
+                "deliveryOnCommercialOffice": contact_details.get("deliveryOnCommercialOffice", False),
+                "commercialOfficeId": contact_details.get("commercialOfficeId", None),
+                "observation": contact_details.get("observation", ""),
+            }],
+            "contacts": [{
+                "name": contact_details["recipientName"],
+                "phoneNumber": contact_details["recipientPhone"],
+                "mail": contact_details["recipientMail"],
+                "contactType": "D",  # Destinatario
+            }, {
+                "name": contact_details["senderName"],
+                "phoneNumber": contact_details["senderPhone"],
+                "mail": contact_details["senderMail"],
+                "contactType": "R",  # Remitente
+            }],
+            "packages": [{
+                "weight": package_details["weight"],
+                "height": package_details["height"],
+                "width": package_details["width"],
+                "length": package_details["length"],
+                "serviceDeliveryCode": package_details["serviceDeliveryCode"],
+                "productCode": package_details["productCode"],
+                "deliveryReference": package_details["deliveryReference"],
+                "groupReference": package_details["groupReference"],
+            }]
+        }]
     }
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
-    return response.json()
+
+    if marketplace_rut:
+        payload["header"]["marketplaceRut"] = marketplace_rut
+    if seller_rut:
+        payload["header"]["sellerRut"] = seller_rut
+
+    try:
+        response = requests.post(api_base_url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Error al generar el envío: {str(e)}"}
+
 
 from .carrito import Carrito
 
