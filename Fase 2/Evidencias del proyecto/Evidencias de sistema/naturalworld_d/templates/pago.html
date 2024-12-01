@@ -5,12 +5,13 @@
 
 {% block content %}
 <title>Pago</title>
-<br><br><br>
+<br><br>
 <div class="container">
     <div style="padding-left: 20%; padding-right: 20%;">
         <div class="green-bordered-rounded">
         <h2 style="text-align: center;" >Resumen de pedido</h2>
         </div></div>
+        <br>
         <br>
     <table class="table table-bordered">
         <thead>
@@ -26,20 +27,20 @@
             <tr>
                 <td>{{ item.nombre }}</td>
                 <td>{{ item.cantidad }}</td>
-                <td>{{ item.precio|format_currency }}</td>
-                <td>{{ item.cantidad|multiply:item.precio|format_currency }}</td>
+                <td>{{ item.precio |format_currency  }}</td>
+                <td>{{ item.cantidad|multiply:item.precio |format_currency  }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <p><strong>Costo de Envío:</strong> {{ costo_envio|format_currency }}</p>
-    <p><strong>Total a Pagar:</strong> {{ total_pagar|format_currency }}</p>
+    <p><strong>Costo de Envío:</strong> {{ costo_envio |format_currency  }}</p>
+    <p><strong>Total a Pagar:</strong> {{ total_pagar |format_currency  }}</p>
     <p><strong>Dirección de Envío:</strong> {{ direccion.direccion }}, {{ direccion.calle }} {{ direccion.numero }}, {{ direccion.comuna }}</p>
-    <br><br>
+
     <!-- Botón de Pagar con Mercado Pago -->
     <button onclick="iniciarPago()" class="btn btn-outline-success btn-lg">Pagar con Mercado Pago</button>
 </div>
-<br><br><br>
+<br><Br><Br><br><br><Br><Br><br><br>
 
 <!-- SDK de Mercado Pago y lógica de inicio de pago -->
 <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -73,6 +74,7 @@ function iniciarPago() {
     .catch(error => console.error('Error:', error));
 }
 </script>
+
 <style>
     .form-container {
         border: 2px solid green; /* Borde verde */

@@ -1,72 +1,101 @@
-<!-- checkout.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<title>Checkout</title>
-<br>
-<div style="padding-left: 20%; padding-right: 20%;">
-    <div class="green-bordered-rounded">
-    <h2 style="text-align: center;" >Proceso de Checkout</h2>
-    </div></div>
-{% if error %}
-    <p style="color:red;">{{ error }}</p>
-{% endif %}
-<div class="container mt-4"> 
-<form method="post">
-    {% csrf_token %}
-    
-    <label for="rut">RUT:</label>
-    <input class="form-control" type="text" id="rut" name="rut" placeholder="Ingrese su RUT" required>
+<div class="container mt-4">
+    <h2 class="text-center mb-4 green-bordered-rounded">Cálculo de envíos {{user.username}}</h2>
 
-    <label for="mail_cliente">Email:</label>
-    <input class="form-control" type="email" id="mail_cliente" name="mail_cliente" placeholder="Ingrese su email" required>
+    <!-- Mostrar mensajes de error -->
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+        <!-- Mostrar errores detallados si están disponibles -->
+        {% if error_details %}
+            <ul>
+                {% for detail in error_details %}
+                    <li>{{ detail }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endif %}
 
-    <label for="comuna">Comuna:</label>
-    <input class="form-control" type="text" id="comuna" name="comuna" required>
+    <!-- Formulario de checkout -->
+    <form method="post" class="checkout-form green-bordered-rounded">
+        {% csrf_token %}
 
-    <label for="direccion">Dirección:</label>
-    <input class="form-control" type="text" id="direccion" name="direccion" required>
+        <!-- Datos del Destinatario -->
+        <h3 class="mb-3">Datos del Destinatario</h3>
 
-    <label for="calle">Calle:</label>
-    <input class="form-control" type="text" id="calle" name="calle" required>
+        <div class="mb-3">
+            <label for="mail_cliente" class="form-label">Email:</label>
+            <input type="email" id="mail_cliente" name="mail_cliente" class="form-control form-control-green" placeholder="Correo electrónico" value="{{ user.email }}" required>
+        </div>
 
-    <label for="numero">Número:</label>
-    <input class="form-control" type="text" id="numero" name="numero" required>
-    <br>
-    <a class="btn btn-outline-danger" onclick="history.back()">Volver Atrás</a> 
-    <button type="submit" class="btn btn-outline-success">Continuar al Pago</button>
-</form>
-<p><strong>Nota:</strong> El ID del cliente será generado automáticamente utilizando el RUT ingresado.</p>
+        <div class="mb-3">
+            <label for="nombre_cliente" class="form-label">Nombre:</label>
+            <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control form-control-green" value="{{ user.first_name }} {{ user.last_name }}"  required>
+        </div>
+
+        <div class="mb-3">
+            <label for="rut" class="form-label">RUT:</label>
+            <input type="text" id="rut" name="rut" class="form-control form-control-green" placeholder="Ingrese su RUT (ej: 12345678-9)" required pattern="\d{7,8}-[\dkK]" title="Ingrese un RUT válido, ej: 12345678-9">
+        </div>
+
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono:</label>
+            <input type="text" name="telefono" id="telefono" class="form-control form-control-green" placeholder="Ingrese su teléfono" required pattern="\+?\d{9,15}" title="Formato válido: +56912345678 o 912345678">
+        </div>
+
+        <!-- Dirección del Destinatario -->
+        <h3 class="mb-3">Dirección del Destinatario</h3>
+        <div class="mb-3">
+            <label for="comuna" class="form-label">Comuna:</label>
+            <input type="text" id="comuna" name="comuna" class="form-control form-control-green" placeholder="Ingrese la comuna de destino" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="calle" class="form-label">Calle:</label>
+            <input type="text" id="calle" name="calle" class="form-control form-control-green" placeholder="Ingrese el nombre de la calle" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="numero" class="form-label">Número:</label>
+            <input type="text" id="numero" name="numero" class="form-control form-control-green" placeholder="Número de casa o edificio" required pattern="\d+" title="Solo números permitidos.">
+        </div>
+
+        <div class="mb-3">
+            <label for="complemento" class="form-label">Complemento:</label>
+            <input type="text" id="complemento" name="complemento" class="form-control form-control-green" placeholder="Información adicional (opcional)">
+        </div>
+
+        <a class="btn btn-outline-danger" href="{% url 'ver_carrito' %}">Volver al Carrito</a>
+        <!-- Botón de Continuar -->
+        <button type="submit" class="btn btn-outline-primary">Continuar al Pago</button>
+    </form>
+
+    <!-- Mostrar Cobertura -->
+    {% if cobertura %}
+        <h3 class="mt-4">Cobertura detectada:</h3>
+        <ul>
+            <li><strong>Comuna origen:</strong> El Monte</li>
+            <li><strong>Comuna destino:</strong> {{ cobertura.comuna_destino }}</li>
+        </ul>
+        <p style="color:green;">Cobertura validada con éxito.</p>
+    {% elif error_cobertura %}
+        <p style="color:red;">{{ error_cobertura }}</p>
+    {% endif %}
 </div>
 
-
-
 <style>
-    .form-container {
-        border: 2px solid green; /* Borde verde */
-        border-radius: 15px; /* Bordes redondeados */
-        padding: 20px; /* Espaciado interior */
-        background-color: white; /* Fondo blanco */
-        box-shadow: 0 0 10px rgba(0, 128, 0, 0.2); /* Sombra para darle profundidad */
-    }
-    
-    input.form-control {
-        border: 2px solid green; /* Borde verde */
-        border-radius: 15px; /* Bordes redondeados */
-        outline: none; /* Eliminar el outline predeterminado */
-    }
-    
-    input.form-control:focus {
-        border: 2px solid green; /* Mantener el borde verde al enfocar */
-        border-radius: 15px; /* Mantener los bordes redondeados al enfocar */
-        box-shadow: 0 0 5px rgba(0, 128, 0, 0.5); /* Outline verde */
-    }
-    
-    .green-bordered-rounded { 
-        border: 2px solid #28a745; /* Borde verde */ 
+    .green-bordered-rounded {
+        border: 2px solid #28a745; /* Borde verde */
         border-radius: 10px; /* Bordes redondeados */
-         padding: 20px; /* Espaciado interno */ 
-         background-color: #dbffe1; /* Fondo claro */ }
-    </style>
+        padding: 20px; /* Espaciado interno */
+        background-color: #f8f9fa; /* Fondo claro */
+    }
+    .form-control-green {
+        border: 2px solid #28a745; /* Borde verde */
+        border-radius: 5px; /* Bordes redondeados */
+    }
+
+</style>
 
 {% endblock %}

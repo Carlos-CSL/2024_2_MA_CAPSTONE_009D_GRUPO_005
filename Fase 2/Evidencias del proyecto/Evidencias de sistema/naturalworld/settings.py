@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,8 +27,9 @@ SECRET_KEY = 'django-insecure-$yzvge4ciwy^+3tlv5xwu$-u2!$kb$npt$3z9xfmehbf^gslww
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','6730-181-43-124-153.ngrok-free.app']
 
+
+ALLOWED_HOSTS = ['*','b22c-181-43-120-252.ngrok-free.app']
 
 # Application definition
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'livereload',
     'django.contrib.staticfiles',
+    'rest_framework',
     'naturalworld_d',
 ]
 
@@ -111,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-es'
 
 TIME_ZONE = 'UTC'
 
@@ -143,14 +146,61 @@ WS_CHILE_EXPRESS_SECONDARY_KEY = os.getenv('WS_CHILE_EXPRESS_SECONDARY_KEY', '7f
 
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://6730-181-43-124-153.ngrok-free.app',
+    'https://b22c-181-43-120-252.ngrok-free.app',
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+CHILEXPRESS_CUSTOMER_CARD_NUMBER = "18578680"
+
+# Datos del remitente fijos
+REMITENTE_FIJO = {
+    "name": "Javier Ulloa",
+    "phoneNumber": "923453456",
+    "mail": "fjfjfkdkdjdjskee@gmail.com",
+    "contactType": "R"
+}
+
+# settings.py
+
+import os
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'naturalworld_d': {  # Asegúrate de que este nombre coincida con el de tu aplicación
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 AUTHENTICATION_BACKENDS = [
     'naturalworld_d.backends.EmailBackend',  # Ruta completa a tu backend personalizado

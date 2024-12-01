@@ -68,7 +68,7 @@
                                         <td>{{ pedido.total|format_currency }}</td>
                                         <td>{{ pedido.fecha_creacion }}</td>
                                         <td> 
-                                            <form method="post" action="{% url 'actualizar_estado_pedido' pedido.id %}">
+                                            <form method="post" action="#">
                                                 {% csrf_token %}
                                                 <select name="estado_pedido" class="form-group">
                                                     <option value="En Preparación" {% if pedido.estado_pedido == 'En Preparación' %}selected{% endif %}>En Preparación</option>

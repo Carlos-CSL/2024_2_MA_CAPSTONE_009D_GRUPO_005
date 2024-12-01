@@ -69,11 +69,19 @@ def cotizar_envio(originCountyCode, destinationCountyCode, package, productType,
         print(f"Error al solicitar la cotización: {e}")
         return {"error": "Error al obtener la cotización"}
 
+import requests
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 API_BASE_URL = "https://testservices.wschilexpress.com/georeference/api/v1.0"
-API_KEY = "9b0dd01cf2944af9a9c179e3176f45ca"  # Coloca tu clave de API correcta
+API_KEY = "9b0dd01cf2944af9a9c179e3176f45ca"
 
 def consultar_cobertura_real(region_code, tipo_cobertura):
+    """
+    Consulta las áreas de cobertura disponibles.
+    """
     url = f"{API_BASE_URL}/coverage-areas?RegionCode={region_code}&type={tipo_cobertura}"
     headers = {
         'Content-Type': 'application/json',
@@ -84,17 +92,21 @@ def consultar_cobertura_real(region_code, tipo_cobertura):
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        
-        # Verificar si la respuesta contiene datos de cobertura
+
+        # Depurar el contenido completo de la respuesta
+        logger.info(f"Respuesta completa de la API: {response.text}")
+
         datos_cobertura = response.json()
         if datos_cobertura.get("statusCode") == 0 and datos_cobertura.get("coverageAreas"):
             return datos_cobertura["coverageAreas"]
         else:
             return {"error": "No se encontró información de cobertura para los parámetros proporcionados."}
     except requests.exceptions.RequestException as e:
+        logger.error(f"Error en la consulta a la API de cobertura: {str(e)}")
         return {"error": str(e)}
-
-
+    except ValueError as ve:
+        logger.error(f"Error al procesar la respuesta JSON: {str(ve)}")
+        return {"error": "La API no devolvió un JSON válido."}
 
 
 
@@ -127,10 +139,8 @@ def consultar_numeracion(street_name_id, street_number):
     
 
 
-
 API_BASE_URL = "http://testservices.wschilexpress.com/georeference/api/v1.0"
 API_KEY = "9b0dd01cf2944af9a9c179e3176f45ca"  # Asegúrate de reemplazar con tu clave de suscripción
-
 def georreferenciar_direccion(county_name, street_name, number):
     url = f"{API_BASE_URL}/addresses/georeference"
     headers = {
@@ -148,124 +158,128 @@ def georreferenciar_direccion(county_name, street_name, number):
         response.raise_for_status()
         resultado = response.json()
         
+        # Verificar si la respuesta contiene la clave "statusCode" y "data"
         if resultado.get("statusCode") == 0 and "data" in resultado:
             return resultado["data"]
         else:
-            return {"error": resultado.get("statusDescription", "Error desconocido")}
+            # Si no se encuentra la comuna o la cobertura
+            error_message = resultado.get("statusDescription", "Error desconocido")
+            return {"error": error_message}
+    
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
 
 
+
 from django.conf import settings
-def obtener_token():
+import requests
+import requests
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+def generar_envio(pedido, customer_card_number, origin_code, destination_code, package_details, contact_details):
     """
-    Obtiene un token de acceso para la API de Chilexpress.
+    Genera un envío en Chilexpress usando la API de Transport Orders.
+
+    :param pedido: Objeto Pedido con los datos del envío.
+    :param customer_card_number: TCC del cliente.
+    :param origin_code: Código de cobertura de origen.
+    :param destination_code: Código de cobertura de destino.
+    :param package_details: Diccionario con los detalles del paquete.
+    :param contact_details: Diccionario con los detalles de contacto.
+    :return: Respuesta de la API de Chilexpress.
     """
-    url = "https://api.wschilexpress.com/oauth2/token"
-    payload = {
-        'grant_type': 'client_credentials',
-        'client_id': "YOUR_CLIENT_ID",  # Reemplaza con tu clave primaria
-        'client_secret': "YOUR_CLIENT_SECRET"  # Reemplaza con tu clave secundaria
-    }
+    # API key y URL
+    API_KEY = getattr(settings, "CHILEXPRESS_API_KEY", "f3f0c3d9b9d34032a559426ab9e6cdda")  # Cambia según configuración
+    API_URL = "http://testservices.wschilexpress.com/transport-orders/api/v1.0/transport-orders"
+
     headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Ocp-Apim-Subscription-Key": API_KEY
     }
 
-    try:
-        response = requests.post(url, data=payload, headers=headers)
-        response.raise_for_status()
-        return response.json().get('access_token')
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error al obtener el token: {str(e)}")
+    # Verificar datos esenciales
+    if not pedido or not pedido.direccion or not pedido.cliente:
+        return {"success": False, "error": "Datos del pedido incompletos"}
 
-
-def generar_envio(
-    customer_card_number,
-    origin_code,
-    destination_code,
-    package_details,
-    contact_details,
-    label_type=2,
-    marketplace_rut=None,
-    seller_rut=None,
-    api_key="YOUR_API_KEY",
-    api_base_url="https://testservices.wschilexpress.com/transport-orders/api/v1.0/transport-orders"
-):
-    """
-    Genera un envío en la API de Chilexpress.
-
-    :param customer_card_number: Número de Tarjeta Cliente Chilexpress (TCC).
-    :param origin_code: Código de cobertura de origen obtenido de la API Consultar Coberturas.
-    :param destination_code: Código de cobertura de destino obtenido de la API Consultar Coberturas.
-    :param package_details: Detalles del paquete (peso, dimensiones, etc.).
-    :param contact_details: Detalles de contacto del remitente y destinatario.
-    :param label_type: Tipo de etiqueta (0 = Solo Datos, 1 = Impresora Zebra, 2 = Imagen Binaria).
-    :param marketplace_rut: Rut del Marketplace (opcional).
-    :param seller_rut: Rut del vendedor (opcional).
-    :param api_key: Clave de suscripción para la API.
-    :param api_base_url: URL base de la API de generación de envíos.
-    :return: Respuesta de la API de Chilexpress o un error.
-    """
-    headers = {
-        'Authorization': f'Bearer {obtener_token()}',
-        'Content-Type': 'application/json',
-        'Ocp-Apim-Subscription-Key': api_key,
-    }
-
-    # Construcción del cuerpo de la solicitud
-    payload = {
+    # Construcción del payload
+    body = {
         "header": {
+            "certificateNumber": 0,  # Número de certificado opcional
             "customerCardNumber": customer_card_number,
             "countyOfOriginCoverageCode": origin_code,
-            "labelType": label_type,
+            "labelType": 2,  # Imagen Binaria + Datos
+            "marketplaceRut": "96756430",  # RUT de prueba
+            "sellerRut": "DEFAULT"
         },
-        "details": [{
-            "addresses": [{
-                "countyCoverageCode": destination_code,
-                "streetName": contact_details["streetName"],
-                "streetNumber": contact_details.get("streetNumber", ""),
-                "supplement": contact_details.get("supplement", ""),
-                "addressType": "DEST",  # Tipo de dirección: DEST = Entrega
-                "deliveryOnCommercialOffice": contact_details.get("deliveryOnCommercialOffice", False),
-                "commercialOfficeId": contact_details.get("commercialOfficeId", None),
-                "observation": contact_details.get("observation", ""),
-            }],
-            "contacts": [{
-                "name": contact_details["recipientName"],
-                "phoneNumber": contact_details["recipientPhone"],
-                "mail": contact_details["recipientMail"],
-                "contactType": "D",  # Destinatario
-            }, {
-                "name": contact_details["senderName"],
-                "phoneNumber": contact_details["senderPhone"],
-                "mail": contact_details["senderMail"],
-                "contactType": "R",  # Remitente
-            }],
-            "packages": [{
-                "weight": package_details["weight"],
-                "height": package_details["height"],
-                "width": package_details["width"],
-                "length": package_details["length"],
-                "serviceDeliveryCode": package_details["serviceDeliveryCode"],
-                "productCode": package_details["productCode"],
-                "deliveryReference": package_details["deliveryReference"],
-                "groupReference": package_details["groupReference"],
-            }]
-        }]
+        "details": [  # Detalles del envío
+            {
+                "addresses": [  # Dirección
+                    {
+                        "countyCoverageCode": destination_code,
+                        "streetName": pedido.direccion.street_name,
+                        "streetNumber": pedido.direccion.street_number or "0",
+                        "supplement": pedido.direccion.supplement or "",
+                        "addressType": "DEST",
+                        "deliveryOnCommercialOffice": contact_details.get("deliveryOnCommercialOffice", False),
+                        "observation": contact_details.get("observation", "Entrega estándar")
+                    }
+                ],
+                "contacts": [  # Contactos
+                    {
+                        "name": pedido.cliente.nombre,
+                        "phoneNumber": pedido.cliente.telefono or "000000000",
+                        "mail": pedido.cliente.email,
+                        "contactType": "D"
+                    },
+                    {
+                        "name": "Remitente de Prueba",
+                        "phoneNumber": "987654321",
+                        "mail": "remitente@prueba.cl",
+                        "contactType": "R"
+                    }
+                ],
+                "packages": [  # Paquetes
+                    {
+                        "weight": package_details["weight"],
+                        "height": package_details["height"],
+                        "width": package_details["width"],
+                        "length": package_details["length"],
+                        "serviceDeliveryCode": package_details["serviceDeliveryCode"],
+                        "productCode": package_details["productCode"],
+                        "deliveryReference": f"PED-{pedido.id}",
+                        "groupReference": f"GRP-{pedido.id}",
+                        "declaredValue": package_details.get("declaredValue", pedido.total),
+                        "declaredContent": package_details.get("declaredContent", 5)
+                    }
+                ]
+            }
+        ]
     }
 
-    if marketplace_rut:
-        payload["header"]["marketplaceRut"] = marketplace_rut
-    if seller_rut:
-        payload["header"]["sellerRut"] = seller_rut
-
     try:
-        response = requests.post(api_base_url, headers=headers, json=payload)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"error": f"Error al generar el envío: {str(e)}"}
+        # Enviar solicitud POST
+        response = requests.post(API_URL, json=body, headers=headers)
+        response_data = response.json()
+
+        if response.status_code == 200 and response_data.get("statusCode") == 0:
+            logger.info(f"Envío generado exitosamente para pedido {pedido.id}")
+            return {"success": True, "data": response_data}
+
+        error_message = response_data.get("statusDescription", "Error desconocido")
+        logger.error(f"Error al generar envío para pedido {pedido.id}: {error_message}")
+        return {"success": False, "error": error_message}
+
+    except requests.RequestException as e:
+        logger.error(f"Excepción al llamar a la API de Chilexpress: {e}")
+        return {"success": False, "error": str(e)}
+
+
+from django.conf import settings
 
 
 from .carrito import Carrito
@@ -300,3 +314,5 @@ def obtener_datos_carrito(request):
         'alto': total_alto,
         'valor': valor_total,
     }
+
+

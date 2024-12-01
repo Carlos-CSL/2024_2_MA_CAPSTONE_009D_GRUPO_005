@@ -40,7 +40,7 @@
                 <h4 class="px-4">Medicina Natural</h4>
                 <a href="{% url 'index' %}">Inicio </a>
                 <a href="{% url 'pag_productos' %}">Productos </a>
-                <a href="{% url 'seguimiento' %}">Seguimiento <span class="label-tag">NUEVO</span></a>
+                <a href="{% url 'consulta_envio' %}">Seguimiento <span class="label-tag">NUEVO</span></a>
 
             </div>
 
@@ -82,7 +82,7 @@
 {% else %}
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
         <li><a class="dropdown-item" href="{% url 'login' %}"> <img src="{% static 'img/useeer.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;"> &nbsp Iniciar Sesión</a></li>
-        <li><a class="dropdown-item" href="{% url 'registro' %}"> <img src="{% static 'img/usermujer.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;"> &nbsp Registrarse</a></li>
+        <li><a class="dropdown-item" href="{% url 'register' %}"> <img src="{% static 'img/usermujer.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;"> &nbsp Registrarse</a></li>
     </ul>
 {% endif %}
 
@@ -125,7 +125,7 @@
                 <a href="{% url 'pag_productos' %}" id="linkFooter" class="d-block"><strong>PRODUCTOS</strong></a>
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                <a href="#" id="linkFooter" class="d-block"><strong>SEGUIMIENTO</strong></a>
+                <a href="{% url 'consulta_envio' %}" id="linkFooter" class="d-block"><strong>SEGUIMIENTO</strong></a>
             </div>
             <div class="col-lg-3 col-md-12 col-sm-12 mb-3">
                 <strong>REDES</strong>

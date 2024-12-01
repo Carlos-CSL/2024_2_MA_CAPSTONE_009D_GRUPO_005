@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<br>
+<div class="container mt-4">
+    <h2 class="text-center mb-4 green-bordered-rounded">Consultar Estado de Envío</h2>
+
+    <!-- Mostrar mensajes de error -->
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <!-- Formulario para consultar estado de envío -->
+    <form method="post" class="tracking-form green-bordered-rounded">
+        {% csrf_token %}
+        <h3 class="mb-3">Datos del Envío</h3>
+        
+        <div class="mb-3">
+            <label for="transportOrderNumber" class="form-label">Número de Seguimiento:</label>
+            <input type="text" id="transportOrderNumber" name="transportOrderNumber" class="form-control form-control-green" placeholder="Ej: 99726299584" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="reference" class="form-label">Referencia:</label>
+            <input type="text" id="reference" name="reference" class="form-control form-control-green" placeholder="Ej: 27699451457" required>
+        </div>
+
+        <button type="submit" class="btn btn-outline-success">Consultar</button>
+    </form>
+
+    <!-- Mostrar Resultados -->
+    {% if estado %}
+        <h3 class="mt-4">Resultado de la Consulta</h3>
+        <ul>
+            <li><strong>Pedido:</strong> {{ pedido_estado }}</li>
+            <li><strong>Fecha de Generación:</strong> {{ fecha_generacion }}</li>
+            <li><strong>Estado Actual:</strong> {{ estado }}</li>
+            <li><strong>Dirección de Destino:</strong> {{ direccion_destino }}</li>
+        </ul>
+    {% endif %}
+</div>
+<br><Br><Br><Br><Br><Br><Br><Br>
+<style>
+    .green-bordered-rounded {
+        border: 2px solid #28a745; /* Borde verde */
+        border-radius: 10px; /* Bordes redondeados */
+        padding: 20px; /* Espaciado interno */
+        background-color: #f8f9fa; /* Fondo claro */
+    }
+    .form-control-green {
+        border: 2px solid #28a745; /* Borde verde */
+        padding: 5px; /* Espaciado interno */
+    }
+    .form-label {
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+

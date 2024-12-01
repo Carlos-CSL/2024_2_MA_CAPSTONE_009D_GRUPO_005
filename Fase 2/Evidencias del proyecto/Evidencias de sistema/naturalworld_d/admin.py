@@ -1,68 +1,181 @@
-# admin.py
+# naturalworld_d/admin.py
 from django.contrib import admin
-from .models import Producto
+from .models import (
+    Producto,
+    Cliente,
+    Direccion,
+    Contacto,
+    Pedido,
+    DetallePedido,
+    PaqueteEnvio,
+    EnvioGenerado,
+    Pago,
+    Comentario,
+    PaqueteDetallePedido,
+    TransportOrder,  # Incluyendo TransportOrder
+)
 
+# === Inlines ===
 
+class DetallePedidoInline(admin.TabularInline):
+    model = DetallePedido
+    extra = 1
+    readonly_fields = ('subtotal',)  # Muestra 'subtotal' como campo de solo lectura
 
-from django.contrib import admin
-from .models import Producto
+class PaqueteDetallePedidoInline(admin.TabularInline):
+    model = PaqueteDetallePedido
+    extra = 1
 
-@admin.register(Producto)
-class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'precio', 'stock', 'tipo_producto', 'peso', 'valor_declarado')  # Campos a mostrar en la lista
-    search_fields = ('nombre', 'tipo_producto', 'descripcion')  # Campos de búsqueda
-    list_filter = ('tipo_producto', 'stock')  # Filtros por tipo de producto y stock
-    ordering = ('nombre',)  # Ordenar por nombre de producto ascendente
-    readonly_fields = ('valor_declarado',)  # Campo de solo lectura si no es editable
+class PaqueteEnvioInline(admin.TabularInline):
+    model = PaqueteEnvio
+    extra = 0
+    show_change_link = True
+
+# === Admin Models ===
+
+@admin.register(Pedido)
+class PedidoAdmin(admin.ModelAdmin):
+    list_display = ('numero_orden', 'cliente', 'total', 'estado', 'estado_envio', 'numero_seguimiento')
+    search_fields = ('numero_orden', 'cliente__nombre', 'cliente__email')
+    list_filter = ('estado', 'estado_envio', 'fecha_creacion')
+    readonly_fields = ('peso_total', 'fecha_creacion', 'numero_seguimiento', 'respuesta_envio')  # Agregados campos adicionales como solo lectura
+    date_hierarchy = 'fecha_creacion'  # Para facilitar la navegación por fechas en el administrador
+
+    inlines = [DetallePedidoInline, PaqueteEnvioInline]
+
     fieldsets = (
-        ('Información Básica', {
-            'fields': ('nombre', 'imagen', 'precio', 'descripcion', 'tipo_producto')
+        (None, {
+            'fields': ('numero_orden', 'cliente', 'total', 'fecha_creacion')
+        }),
+        ('Información de Envío', {
+            'fields': (
+                'customer_card_number',
+                'label_type',
+                'county_of_origin_coverage_code',
+                'certificate_number',
+                'marketplace_rut',
+                'seller_rut',
+                'estado',
+                'estado_envio',
+                'numero_seguimiento',
+                'servicio_cotizado',
+                'respuesta_envio',
+                'peso_total',
+            )
+        }),
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Asegura que ciertos campos sean de solo lectura dependiendo del estado del objeto.
+        """
+        readonly_fields = list(self.readonly_fields)
+        if obj and obj.estado_envio == 'generado':
+            readonly_fields += ['estado', 'estado_envio', 'numero_seguimiento']
+        return readonly_fields
+
+@admin.register(PaqueteEnvio)
+class PaqueteEnvioAdmin(admin.ModelAdmin):
+    list_display = ('referencia_envio', 'pedido', 'servicio_entrega_codigo', 'product_code', 'get_estado_envio')
+    search_fields = ('referencia_envio', 'pedido__numero_orden', 'numero_seguimiento')
+    list_filter = ('servicio_entrega_codigo', 'product_code')
+    inlines = [PaqueteDetallePedidoInline]
+    filter_horizontal = ('addresses', 'contacts')
+    fieldsets = (
+        (None, {
+            'fields': ('pedido', 'referencia_envio', 'referencia_grupo')
         }),
         ('Dimensiones y Peso', {
             'fields': ('peso', 'altura', 'ancho', 'largo')
         }),
-        ('Otros Detalles', {
-            'fields': ('stock', 'valor_declarado')
+        ('Información del Servicio', {
+            'fields': ('servicio_entrega_codigo', 'product_code', 'contenido_declarado', 'valor_declarado', 'receivable_amount_in_delivery')
+        }),
+        ('Relaciones', {
+            'fields': ('addresses', 'contacts')
         }),
     )
 
-    def imagen_preview(self, obj):
-        """
-        Muestra una vista previa de la imagen si es un campo URL.
-        """
-        return f'<img src="{obj.imagen}" width="100" height="100" />' if obj.imagen else "Sin imagen"
-    imagen_preview.short_description = 'Vista previa'
-    imagen_preview.allow_tags = True
+    def get_estado_envio(self, obj):
+        return obj.pedido.estado_envio if obj.pedido else 'N/A'
+    get_estado_envio.short_description = 'Estado de Envío'
 
+@admin.register(DetallePedido)
+class DetallePedidoAdmin(admin.ModelAdmin):
+    list_display = ('pedido', 'producto', 'cantidad', 'precio_unitario', 'peso_unitario', 'display_subtotal')
+    search_fields = ('pedido__numero_orden', 'producto__nombre')
+    list_filter = ('pedido', 'producto')
+    readonly_fields = ('subtotal',)
 
-from django.contrib import admin
-from .models import Pedido, PedidoProducto
+    def display_subtotal(self, obj):
+        return obj.subtotal
+    display_subtotal.short_description = 'Subtotal'
 
-@admin.register(Pedido)
-class PedidoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'numero_orden', 'cliente', 'total', 'fecha_creacion', 'estado_pedido')  # Campos visibles en la lista
-    search_fields = ('numero_orden', 'cliente__username', 'cliente__email')  # Permite búsqueda por número de orden y cliente
-    list_filter = ('fecha_creacion',)  # Filtros para la lista
-    ordering = ('-fecha_creacion',)  # Orden descendente por fecha de creación
-    readonly_fields = ('id', 'fecha_creacion')  # Campos que no se pueden editar directamente
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'precio', 'stock', 'tipo_producto')
+    search_fields = ('nombre', 'descripcion')
+    list_filter = ('tipo_producto',)
+
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'email', 'rut', 'telefono')
+    search_fields = ('nombre', 'email', 'rut')
+    list_filter = ('nombre',)
+
+@admin.register(Direccion)
+class DireccionAdmin(admin.ModelAdmin):
+    list_display = ('street_name', 'street_number', 'county_coverage_code', 'address_type')
+    search_fields = ('street_name', 'street_number', 'county_coverage_code')
+    list_filter = ('address_type', 'county_coverage_code')
+
+@admin.register(Contacto)
+class ContactoAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone_number', 'email', 'contact_type')
+    search_fields = ('name', 'email', 'phone_number')
+    list_filter = ('contact_type',)
+
+@admin.register(EnvioGenerado)
+class EnvioGeneradoAdmin(admin.ModelAdmin):
+    list_display = ('pedido', 'numero_seguimiento', 'estado', 'fecha_generacion')
+    search_fields = ('pedido__numero_orden', 'numero_seguimiento')
+    list_filter = ('estado', 'fecha_generacion')
+
+@admin.register(Pago)
+class PagoAdmin(admin.ModelAdmin):
+    list_display = ('id_pago', 'pedido', 'estado', 'monto', 'fecha_creacion')
+    search_fields = ('id_pago', 'pedido__numero_orden', 'estado')
+    list_filter = ('estado',)
+
+@admin.register(Comentario)
+class ComentarioAdmin(admin.ModelAdmin):
+    list_display = ('producto', 'usuario', 'fecha', 'visible')
+    search_fields = ('producto__nombre', 'usuario__username', 'texto')
+    list_filter = ('visible', 'fecha')
+
+@admin.register(PaqueteDetallePedido)
+class PaqueteDetallePedidoAdmin(admin.ModelAdmin):
+    list_display = ('paquete_envio', 'detalle_pedido', 'cantidad')
+    search_fields = ('paquete_envio__referencia_envio', 'detalle_pedido__producto__nombre')
+    list_filter = ('paquete_envio',)
+
+# === TransportOrder ===
+
+@admin.register(TransportOrder)
+class TransportOrderAdmin(admin.ModelAdmin):
+    list_display = ('pedido', 'transport_order_number', 'certificate_number', 'estado', 'label_type', 'fecha_generacion')
+    search_fields = ('pedido__numero_orden', 'transport_order_number')
+    list_filter = ('estado', 'label_type', 'fecha_generacion')
+    readonly_fields = ('fecha_generacion', 'fecha_actualizacion', 'respuesta_api')
     fieldsets = (
-        ('Información del Pedido', {
-            'fields': ('id', 'numero_orden', 'cliente', 'total', 'fecha_creacion')
+        (None, {
+            'fields': ('pedido', 'transport_order_number', 'certificate_number', 'label_type')
         }),
-        ('Productos en el Pedido', {
-            'fields': ('productos',),  # Mostrar productos relacionados
+        ('Información de Estado', {
+            'fields': ('estado', 'fecha_generacion', 'fecha_actualizacion')
+        }),
+        ('Detalles de la API', {
+            'fields': ('respuesta_api',)
         }),
     )
 
-    def productos(self, obj):
-        """
-        Muestra los productos relacionados con el pedido.
-        """
-        return ", ".join([str(pp.producto) for pp in obj.detalles.all()])
-    productos.short_description = 'Productos en el Pedido'
-
-@admin.register(PedidoProducto)
-class PedidoProductoAdmin(admin.ModelAdmin):
-    list_display = ('pedido', 'producto', 'cantidad', 'precio_unitario')  # Campos visibles
-    search_fields = ('pedido__numero_orden', 'producto__nombre')  # Búsqueda por pedido y producto
-    list_filter = ('pedido',)  # Filtros

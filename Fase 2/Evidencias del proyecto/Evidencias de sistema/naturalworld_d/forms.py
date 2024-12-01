@@ -1,50 +1,106 @@
 from django import forms
+from .models import Cliente, Producto
 import re
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Producto, Perfil, Cliente
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = ['rut', 'nombre', 'email']  # Incluye los campos que deseas
 
+# shipping/forms.py
 
+from django import forms
+from .models import Pedido, PaqueteEnvio
+from django.forms import modelformset_factory
 
-class RegistroForm(UserCreationForm):
-    nombre = forms.CharField(max_length=30, required=True, help_text='Nombre',widget=forms.TextInput(attrs={'class': 'form-control'}))
-    apellido = forms.CharField(max_length=30, required=True, help_text='Apellido',widget=forms.TextInput(attrs={'class': 'form-control'}))
-    email = forms.EmailField(max_length=254, required=True, help_text='Correo electrónico',widget=forms.TextInput(attrs={'class': 'form-control'}))
-    rut = forms.CharField(max_length=12, required=True, help_text='RUT en formato XX.XXX.XXX-Y',widget=forms.TextInput(attrs={'class': 'form-control','placeholder': 'Formato 00.000.000-0'}))
-    numero_telefono = forms.CharField(max_length=15, required=True, help_text='Número de Teléfono',widget=forms.TextInput(attrs={'class': 'form-control','placeholder': 'Formato 9 0000 0000' }))
-    password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password2 = forms.CharField(label='Confirmar Contraseña',widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+class PedidoForm(forms.ModelForm):
+    class Meta:
+        model = Pedido
+        fields = ['cliente', 'direccion', 'customer_card_number', 'label_type']
+        # Agrega otros campos si es necesario
+
+class PaqueteEnvioForm(forms.ModelForm):
+    class Meta:
+        model = PaqueteEnvio
+        fields = [
+            'peso', 'altura', 'ancho', 'largo',
+            'servicio_entrega_codigo', 'referencia_envio',
+            'referencia_grupo', 'contenido_declarado',
+            'valor_declarado', 'receivable_amount_in_delivery'
+        ]
+
+PaqueteEnvioFormSet = modelformset_factory(
+    PaqueteEnvio,
+    form=PaqueteEnvioForm,
+    extra=1,  # Número de formularios adicionales que deseas mostrar
+    can_delete=True  # Permite eliminar paquetes si es necesario
+)
+
+class LoginForm(AuthenticationForm):
+    username = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
+        label=_("Correo electrónico")
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
+        label=_("Contraseña")
+    )
 
     class Meta:
         model = User
-        fields = ('username', 'nombre', 'apellido', 'email', 'rut', 'numero_telefono', 'password1', 'password2',)
+        fields = ['username', 'password']
 
-        widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-        labels = {
-            'username': 'Nombre de usuario'
-        }
+
+User = get_user_model()
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
+        label=_("Correo electrónico")
+    )
+    first_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}),
+        label=_("Nombre")
+    )
+    last_name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}),
+        label=_("Apellido")
+    )
+    password1 = forms.CharField(
+        label=_("Contraseña"),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
+    )
+    password2 = forms.CharField(
+        label=_("Confirmar Contraseña"),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar Contraseña'}),
+    )
+
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'password1', 'password2']
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError("Este correo electrónico ya está registrado.")
+        email = self.cleaned_data.get('email').lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Este correo electrónico ya está registrado.")
         return email
 
-    def clean_rut(self):
-        rut = self.cleaned_data.get('rut')
-        if Perfil.objects.filter(rut=rut).exists():
-            raise ValidationError("Este RUT ya está registrado.")
-        return rut
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data['email'].lower()  # Asigna el email al username
+        user.email = self.cleaned_data['email'].lower()
+        if commit:
+            user.save()
+        return user
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -151,110 +207,3 @@ class ProductoForm(forms.ModelForm):
         if precio < 0:
             raise forms.ValidationError("El precio no puede ser negativo.")
         return precio
-        
-class LoginForm(AuthenticationForm):
-    username = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
-        label=_("Correo electrónico")
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
-        label=_("Contraseña")
-    )
-
-    class Meta:
-        model = User
-        fields = ['username', 'password']
-
-
-def validate_rut(value):
-    # Validar formato del RUT
-    if not re.match(r'^\d{7,8}-[0-9Kk]$', value):
-        raise ValidationError('El RUT debe tener el formato 12345678-9 o 12345678-K')
-
-    # Validar dígito verificador
-    rut, dv = value.split('-')
-    rut = int(rut)
-    dv = dv.upper()
-    s = 1
-    m = 0
-    while rut > 0:
-        s = (s + rut % 10 * (9 - m % 6)) % 11
-        rut //= 10
-        m += 1
-    if (s > 0 and chr(s + 47) != dv) and (s == 0 and dv != 'K'):
-        raise ValidationError('El RUT ingresado no es válido')
-
-
-class RegisterForm(UserCreationForm):
-    first_name = forms.CharField(
-        max_length=30, 
-        required=True, 
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Nombre'
-    )
-    last_name = forms.CharField(
-        max_length=30, 
-        required=True, 
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Primer Apellido'}),
-        label='Apellido'
-    )
-    email = forms.EmailField(
-        required=True, 
-        widget=forms.EmailInput(attrs={'class': 'form-control'}),
-        label='Correo Electrónico'
-    )
-    rut = forms.CharField(
-        max_length=10, 
-        required=True, 
-        validators=[validate_rut],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Sin puntos y con guion (Ej.: 21543567-1)'}),
-        label='RUT'
-    )
-    celular = forms.CharField(
-        max_length=9, 
-        required=True, 
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej.: 9 1234 5431', 'type': 'number'}),
-        label='Número de celular'
-    )
-    password1 = forms.CharField(
-        label='Contraseña',
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-    password2 = forms.CharField(
-        label='Confirmar Contraseña',
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
-    )
-
-    class Meta:
-        model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'rut', 'celular', 'password1', 'password2']
-        widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control'})
-        }
-        labels = {
-            'username': 'Nombre de usuario'
-        }
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Este correo electrónico ya está registrado.")
-        return email
-
-    def clean_rut(self):
-        rut = self.cleaned_data.get('rut')
-        if UserProfile.objects.filter(rut=rut).exists():
-            raise forms.ValidationError("Este RUT ya está registrado.")
-        return rut
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        if commit:
-            user.save()
-        user_profile = UserProfile.objects.create(
-            user=user,
-            rut=self.cleaned_data['rut'],
-            celular=self.cleaned_data['celular']
-        )
-        return user
