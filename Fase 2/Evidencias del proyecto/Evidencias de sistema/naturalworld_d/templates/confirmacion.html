@@ -2,7 +2,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>{{ mensaje }}</h2>
-<p>Gracias por tu compra. Te hemos enviado un correo con los detalles de tu pedido.</p>
-<a href="{% url 'listar_productos' %}">Volver a la tienda</a>
+<body class="bg-light">
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card shadow-lg p-4" style="max-width: 500px;">
+            <div class="card-body text-center">
+                <h2 class="card-title text-success">{{ mensaje }}</h2>
+                <p class="card-text mt-3">Gracias por tu compra. Te hemos enviado un correo de confirmación.</p>
+                <a href="{% url 'index' %}" class="btn btn-outline-success mt-4">Volver al Inicio</a>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 {% endblock %}

@@ -1,59 +1,77 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<br>
-<div class="container mt-4">
-    <h2 class="text-center mb-4 green-bordered-rounded">Consultar Estado de Envío</h2>
+{% load custom_filters %}
 
-    <!-- Mostrar mensajes de error -->
+<div class="container mt-4">
     {% if error %}
         <p style="color:red;">{{ error }}</p>
     {% endif %}
-
-    <!-- Formulario para consultar estado de envío -->
-    <form method="post" class="tracking-form green-bordered-rounded">
+<br>
+    <form method="post">
         {% csrf_token %}
-        <h3 class="mb-3">Datos del Envío</h3>
-        
+        <div class="container mt-4">
+            <h1 class="text-center bg-light-green py-3 px-4 rounded shadow-lg">
+                Consultar por Número de Orden
+            </h1>
+        </div><br>
         <div class="mb-3">
-            <label for="transportOrderNumber" class="form-label">Número de Seguimiento:</label>
-            <input type="text" id="transportOrderNumber" name="transportOrderNumber" class="form-control form-control-green" placeholder="Ej: 99726299584" required>
+            <label for="numero_orden">Número de Orden:</label>
+            <input type="text" id="numero_orden" name="numero_orden" class="form-control" placeholder="Ej: ORD-20231112-0001" required>
         </div>
 
-        <div class="mb-3">
-            <label for="reference" class="form-label">Referencia:</label>
-            <input type="text" id="reference" name="reference" class="form-control form-control-green" placeholder="Ej: 27699451457" required>
-        </div>
-
-        <button type="submit" class="btn btn-outline-success">Consultar</button>
+        <button type="submit" class="btn btn-outline-success">Consulta Pedido</button>
     </form>
+    
 
-    <!-- Mostrar Resultados -->
     {% if estado %}
-        <h3 class="mt-4">Resultado de la Consulta</h3>
+        <h3>Resultado de la Consulta</h3>
         <ul>
-            <li><strong>Pedido:</strong> {{ pedido_estado }}</li>
-            <li><strong>Fecha de Generación:</strong> {{ fecha_generacion }}</li>
             <li><strong>Estado Actual:</strong> {{ estado }}</li>
+            <li><strong>Referencia:</strong> {{ referencia }}</li>
+            <li><strong>Ubicación:</strong> {{ ubicacion }}</li>
             <li><strong>Dirección de Destino:</strong> {{ direccion_destino }}</li>
+            <li><strong>Fecha de Generación:</strong> {{ fecha_generacion }}</li>
         </ul>
+
+        <h4>Detalles del Pedido</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in detalles %}
+                    <tr>
+                        <td>{{ d.producto }}</td>
+                        <td>{{ d.cantidad }}</td>
+                        <td>{{ d.precio_unitario |format_currency }}</td>
+                        <td>{{ d.subtotal |format_currency }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 </div>
-<br><Br><Br><Br><Br><Br><Br><Br>
-<style>
-    .green-bordered-rounded {
-        border: 2px solid #28a745; /* Borde verde */
-        border-radius: 10px; /* Bordes redondeados */
-        padding: 20px; /* Espaciado interno */
-        background-color: #f8f9fa; /* Fondo claro */
-    }
-    .form-control-green {
-        border: 2px solid #28a745; /* Borde verde */
-        padding: 5px; /* Espaciado interno */
-    }
-    .form-label {
-        margin-top: 10px;
-    }
-</style>
+<br><br><Br><Br><Br><Br><Br><Br><BR><br><Br>
+    <style>
+        .bg-light-green {
+            background-color: #c5eec8; /* Fondo claro */
+        }
+    
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em; /* Reducir el tamaño de la fuente en pantallas pequeñas */
+            }
+        }
+    
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2.5em; /* Tamaño normal para pantallas medianas y superiores */
+            }
+        }
+    </style>
 {% endblock %}
-

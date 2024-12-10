@@ -15,6 +15,8 @@ from .utils import consultar_cobertura_real
 from .models import  Pedido, Producto  # Importa los modelos necesarios
 from .forms import ProductoForm, LoginForm, RegisterForm
 from django.contrib.auth import authenticate, login
+from django.views.decorators.cache import never_cache
+from django.contrib.auth import views as auth_views
 
 
 def pag_productos(request):
@@ -60,6 +62,22 @@ def register_view(request):
     return render(request, 'registration/registro.html', {'form': form})
 
 @login_required
+def mis_pedidos(request):
+    """
+    Vista para que el usuario autenticado pueda ver sus propios pedidos filtrados por email.
+    """
+    user_email = request.user.email  # Obtener el correo electrónico del usuario autenticado
+
+    # Filtrar pedidos donde el correo electrónico del cliente coincide con el del usuario
+    pedidos = Pedido.objects.filter(cliente__email=user_email).order_by('-fecha_creacion').prefetch_related('detalles_pedido__producto', 'paquetes_envio__addresses')
+
+    context = {
+        'pedidos': pedidos
+    }
+
+    return render(request, 'mis_pedidos.html', context)
+
+@login_required
 def admin_productos(request):
     producto = Producto.objects.all()
     datos = {
@@ -101,11 +119,33 @@ def admin_mod_producto(request, id):
 
 @login_required
 def admin_pedidos(request):
-    pedido = Pedido.objects.all()
+    pedidos = Pedido.objects.all().order_by('-fecha_creacion') 
     datos = {
-        'pedido': pedido
+        'pedidos': pedidos 
     }
-    return render(request, 'admin_pedidos.html', datos)
+    return render(request, 'admin_pedidos.html', datos) 
+
+
+def actualizar_estado_pedido(request, pedido_id):
+    # Obtener el pedido o redirigir si no existe
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+
+    if request.method == "POST":
+        nuevo_estado = request.POST.get('estado')
+
+        # Validar que el nuevo estado es uno de los permitidos
+        estados_validos = ['Pendiente', 'En Preparacion', 'Enviado', 'Cancelado', 'Pagado']
+        if nuevo_estado not in estados_validos:
+            messages.error(request, "Estado de pedido no válido.")
+            return redirect('actualizar_estado_pedido', pedido_id=pedido_id)
+
+        # Actualizar el estado del pedido
+        pedido.estado = nuevo_estado
+        pedido.save()
+        messages.success(request, "Estado del pedido actualizado correctamente.")
+        return redirect('admin_pedidos')  # Asegúrate de que 'admin_pedidos' está correctamente configurado
+
+    return render(request, 'admin_pedidos.html', {'pedido': pedido})
 
 # Registro de filtro para formateo de moneda en templates
 register = template.Library()
@@ -288,12 +328,12 @@ def crear_preferencia(request):
         preference_data = {
             "items": items,
             "back_urls": {
-                "success": "https://b22c-181-43-120-252.ngrok-free.app/success/",
-                "failure": "https://b22c-181-43-120-252.ngrok-free.app/failure/",
-                "pending": "https://b22c-181-43-120-252.ngrok-free.app/pending/"
+                "success": "https://f4a4-181-43-149-87.ngrok-free.app/confirmacion/",
+                "failure": "https://f4a4-181-43-149-87.ngrok-free.app/failure/",
+                "pending": "https://f4a4-181-43-149-87.ngrok-free.app/pending/"
             },
             "auto_return": "approved",
-            "notification_url": "https://b22c-181-43-120-252.ngrok-free.app/webhook/",
+            "notification_url": "https://f4a4-181-43-149-87.ngrok-free.app/webhook/",
             "external_reference": f"pedido-{pedido.id}",
         }
 
@@ -2073,6 +2113,12 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from naturalworld_d.models import Pedido
 import requests  # Asegúrate de importar 'requests' para la API de MailerSend
+from django.urls import reverse
+import requests
+import requests  # Asegúrate de importar 'requests' para la API de MailerSend
+from django.urls import reverse
+import requests
+from django.conf import settings  # Agregar import settings para usar SITE_URL si no hay request
 
 def enviar_correo_confirmacion(request, cliente_email, cliente_nombre, numero_orden, tracking_number):
     """
@@ -2086,9 +2132,16 @@ def enviar_correo_confirmacion(request, cliente_email, cliente_nombre, numero_or
         "Content-Type": "application/json",
     }
 
-    # Construir una URL completa (si es necesario)
-    base_url = f"{request.scheme}://{request.get_host()}"
-    pedido_url = f"{base_url}/pedido/{numero_orden}/"  # Ejemplo de una URL completa
+    # Aquí utilizamos directamente la URL fija de ngrok para la consulta de envío
+    consultar_envio_url = "https://f4a4-181-43-149-87.ngrok-free.app/consulta-envio/"
+
+    # Construir la URL del pedido. Si existe un request real, lo usamos, sino usamos SITE_URL
+    if request is not None:
+        base_url = f"{request.scheme}://{request.get_host()}"
+    else:
+        base_url = settings.SITE_URL
+
+    pedido_url = f"{base_url}/pedido/{numero_orden}/"
 
     asunto = f"Confirmación de Pago para su pedido {numero_orden}"
     cuerpo_texto = (
@@ -2096,13 +2149,14 @@ def enviar_correo_confirmacion(request, cliente_email, cliente_nombre, numero_or
         f"Su pedido {numero_orden} ha sido procesado correctamente.\n"
         f"El número de seguimiento es: {tracking_number}.\n\n"
         f"Puede consultar su pedido aquí: {pedido_url}\n\n"
+        f"También puede consultar el estado de su envío aquí: {consultar_envio_url}\n\n"
         "Gracias por su compra.\nEl equipo de The World of Natural Medicine."
     )
     cuerpo_html = (
         f"<p>Hola {cliente_nombre},</p>"
         f"<p>Su pedido <strong>{numero_orden}</strong> ha sido procesado correctamente.</p>"
         f"<p>El número de seguimiento es: <strong>{tracking_number}</strong>.</p>"
-        f"<p>Puede consultar su pedido aquí: <a href='{pedido_url}'>Ver pedido</a></p>"
+        f"<p>También puede consultar el estado de su envío aquí y ver su pedido: <a href='{consultar_envio_url}'>Consultar Envío</a></p>"
         f"<p>Gracias por su compra.<br>El Equipo de The World of Natural Medicine.</p>"
     )
 
@@ -2123,48 +2177,7 @@ def enviar_correo_confirmacion(request, cliente_email, cliente_nombre, numero_or
         return {"success": True, "message": "Correo enviado correctamente"}
     except requests.exceptions.RequestException as e:
         return {"success": False, "error": str(e)}
-
-def prueba_enviar_correo(request, numero_orden):
-    """
-    Vista que procesa un pedido específico y envía un correo de confirmación al cliente.
-    """
-    try:
-        # Buscar el pedido por el número de orden
-        pedido = Pedido.objects.get(numero_orden=numero_orden)
-
-        # Verificar que el pedido tiene cliente y número de seguimiento
-        if not pedido.cliente or not pedido.numero_seguimiento:
-            return JsonResponse(
-                {"success": False, "error": "El pedido no tiene cliente o número de seguimiento asignado."},
-                status=400
-            )
-
-        # Obtener los datos del cliente y del pedido
-        cliente_email = pedido.cliente.email
-        cliente_nombre = pedido.cliente.nombre
-        tracking_number = pedido.numero_seguimiento
-
-        # Llamar a la función para enviar el correo
-        resultado_envio = enviar_correo_confirmacion(
-            request,  # Pasar request explícitamente
-            cliente_email,
-            cliente_nombre,
-            numero_orden,
-            tracking_number
-        )
-
-        if resultado_envio["success"]:
-            return JsonResponse({"success": True, "message": "Correo de confirmación enviado correctamente."})
-        else:
-            return JsonResponse({"success": False, "error": resultado_envio["error"]}, status=500)
-
-    except ObjectDoesNotExist:
-        return JsonResponse({"success": False, "error": f"Pedido con número {numero_orden} no encontrado."}, status=404)
-    except Exception as e:
-        return JsonResponse({"success": False, "error": f"Error inesperado: {str(e)}"}, status=500)
-
-
-
+    
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from .models import Pedido
@@ -2191,7 +2204,15 @@ import requests
 
 from django.shortcuts import render
 from django.http import JsonResponse
-API_KEY = "f3f0c3d9b9d34032a559426ab9e6cdda"  # Tu API Key aquí directamente
+import requests
+from django.shortcuts import render
+from .models import Pedido, DetallePedido, EnvioGenerado
+
+import requests
+from django.shortcuts import render
+from .models import Pedido, DetallePedido, EnvioGenerado
+
+API_KEY = "f3f0c3d9b9d34032a559426ab9e6cdda"  # Clave de la API
 
 def consulta_individual_envio(transportOrderNumber, reference, showTrackingEvents=1):
     """
@@ -2220,16 +2241,24 @@ def consulta_individual_envio(transportOrderNumber, reference, showTrackingEvent
 
 def consultar_envio(request):
     if request.method == "POST":
-        transportOrderNumber = request.POST.get("transportOrderNumber")
-        reference = request.POST.get("reference")
+        numero_orden = request.POST.get("numero_orden")
 
-        # Validar campos
-        if not transportOrderNumber or not reference:
-            return render(request, "consulta_envio.html", {
-                "error": "Debe proporcionar el número de seguimiento y la referencia."
-            })
+        # Verificar que se haya proporcionado un número de orden
+        if not numero_orden:
+            return render(request, "consulta_envio.html", {"error": "Debe proporcionar el número de orden del pedido."})
 
-        # Consultar estado del envío
+        # Buscar el pedido en la base de datos usando el número de orden
+        try:
+            pedido = Pedido.objects.get(numero_orden=numero_orden)
+            transport_order = pedido.transport_order  # Relación con la tabla TransportOrder
+            transportOrderNumber = transport_order.transport_order_number
+            reference = pedido.numero_orden
+        except Pedido.DoesNotExist:
+            return render(request, "consulta_envio.html", {"error": "No se encontró el pedido con el número de orden proporcionado."})
+        except AttributeError:
+            return render(request, "consulta_envio.html", {"error": "El pedido no tiene una orden de transporte asociada."})
+
+        # Consultar estado del envío con la API de Chilexpress
         resultado = consulta_individual_envio(transportOrderNumber, reference)
 
         if "error" in resultado:
@@ -2237,23 +2266,34 @@ def consultar_envio(request):
                 "error": resultado.get("error", "Error desconocido.")
             })
 
-        # Procesar datos relevantes
+        # Procesar datos relevantes de la API
         data = resultado.get("data", {})
         transport_order_data = data.get("transportOrderData", {})
         address_data = data.get("addressData", {})
         tracking_events = data.get("trackingEvents", [])
 
-        # Obtener datos adicionales del pedido
+        # Obtener detalles del pedido local
         try:
-            pedido = Pedido.objects.get(numero_orden=reference)
-            envio_generado = pedido.envio  # Relación al modelo `EnvioGenerado`
+            envio_generado = pedido.envio  # Relación con el modelo EnvioGenerado
             fecha_generacion = envio_generado.fecha_generacion
             pedido_estado = envio_generado.estado
+
+            # Detalles del pedido (productos comprados)
+            detalles = DetallePedido.objects.filter(pedido=pedido)
+            detalles_list = [
+                {
+                    'producto': d.producto.nombre,
+                    'cantidad': d.cantidad,
+                    'precio_unitario': d.precio_unitario,
+                    'subtotal': d.cantidad * d.precio_unitario
+                } for d in detalles
+            ]
+
         except (Pedido.DoesNotExist, AttributeError):
             fecha_generacion = None
             pedido_estado = None
+            detalles_list = None
 
-        # Contexto para el HTML
         context = {
             "estado": transport_order_data.get("status"),
             "referencia": transport_order_data.get("reference"),
@@ -2265,8 +2305,151 @@ def consultar_envio(request):
             "fecha_generacion": fecha_generacion,
             "pedido_estado": pedido_estado,
             "eventos": tracking_events,
+            "detalles": detalles_list,
         }
 
         return render(request, "consulta_envio.html", context)
 
     return render(request, "consulta_envio.html")
+
+
+
+def confirmacion(request):
+    contexto = {
+        'mensaje': 'Tu pedido se ha procesado correctamente.'
+    }
+    return render(request, 'confirmacion.html', contexto)
+
+
+
+
+import requests
+import base64
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Image
+
+import requests
+import base64
+import os
+from django.core.files.base import ContentFile
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Image
+
+# API Key global, se reutiliza para todas las funciones
+import requests  # Asegúrate de importar requests si no está ya importado
+
+# Clave API
+import requests
+import base64
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Image
+from django.core.files.base import ContentFile
+from naturalworld_d.models import TransportOrder
+
+import os
+import base64
+import requests
+import logging
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Image
+from django.core.files.base import ContentFile
+from django.conf import settings
+
+# Clave de la API de Chilexpress (obligatoria)
+import os
+import base64
+import requests
+import logging
+from django.utils import timezone
+from django.conf import settings
+from .models import TransportOrder
+
+logger = logging.getLogger(__name__)
+
+def reimprimir_etiqueta(pedido, request=None):
+    """
+    Reimprime la etiqueta de una Orden de Transporte existente con labelType=2 (Imagen en Binario + Datos).
+    """
+    CHILEXPRESS_SUBSCRIPTION_KEY = os.getenv('CHILEXPRESS_SUBSCRIPTION_KEY', 'f3f0c3d9b9d34032a559426ab9e6cdda')  # Usar variable de entorno
+    label_type = 2  # Forzamos labelType a 2
+    url = os.getenv('CHILEXPRESS_API_URL', 'http://testservices.wschilexpress.com/transport-orders/api/v1.0/transport-orders-labels')
+
+    try:
+        # Validar que el pedido tenga un número de seguimiento
+        if not pedido.numero_seguimiento:
+            logger.error(f"El pedido {pedido.id} no tiene un número de seguimiento asociado. No se puede reimprimir etiqueta.")
+            return {"success": False, "error": "No hay número de seguimiento para reimprimir etiqueta."}
+
+        # Preparar el payload
+        payload = {
+            "transportOrderNumber": str(pedido.numero_seguimiento),  # Cambiado a str para evitar problemas de tipo
+            "labelType": label_type
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Ocp-Apim-Subscription-Key": CHILEXPRESS_SUBSCRIPTION_KEY
+        }
+
+        logger.debug(f"Enviando payload de reimpresión:\n{payload}")
+        response = requests.post(url, json=payload, headers=headers)
+        logger.debug(f"Respuesta de la API reimpresión: {response.status_code} - {response.text}")
+
+        if response.status_code == 200:
+            response_data = response.json()
+            detail = response_data.get("data", {}).get("detail", [{}])[0]
+            label_data_base64 = detail.get("label", {}).get("labelData", "")
+
+            etiqueta_rel_path = ""
+            if label_data_base64:
+                label_binary = base64.b64decode(label_data_base64)
+                
+                # Crear directorio si no existe
+                etiqueta_dir = os.path.join(settings.MEDIA_ROOT, 'etiquetas')
+                os.makedirs(etiqueta_dir, exist_ok=True)
+                
+                # Guardar la etiqueta como PDF
+                etiqueta_filename = f"etiqueta_reimp_{pedido.numero_seguimiento}.pdf"
+                etiqueta_path = os.path.join(etiqueta_dir, etiqueta_filename)
+                
+                with open(etiqueta_path, 'wb') as etiqueta_file:
+                    etiqueta_file.write(label_binary)
+                
+                etiqueta_rel_path = f"etiquetas/{etiqueta_filename}"
+
+            # Actualizar o crear TransportOrder con la nueva etiqueta
+            transport_order, created = TransportOrder.objects.update_or_create(
+                pedido=pedido,
+                defaults={
+                    'transport_order_number': str(pedido.numero_seguimiento),
+                    'certificate_number': response_data.get("data", {}).get("header", {}).get("certificateNumber"),
+                    'label_type': str(label_type),
+                    'estado': 'generado',
+                    'etiqueta': etiqueta_rel_path,
+                    'respuesta_api': response_data,
+                    'fecha_actualizacion': timezone.now()
+                }
+            )
+
+            if created:
+                logger.info(f"TransportOrder creada exitosamente para el pedido {pedido.id}")
+            else:
+                logger.info(f"TransportOrder actualizada para el pedido {pedido.id}")
+
+            return {"success": True, "data": response_data}
+
+        else:
+            try:
+                error_response = response.json()
+                error_msg = error_response.get("errors", ["Error desconocido"])[0]
+            except Exception as e:
+                logger.error(f"Error al decodificar la respuesta de la API: {e}")
+                error_msg = "Error desconocido"
+
+            logger.error(f"Error en la reimpresión de la etiqueta: {error_msg}")
+            return {"success": False, "error": error_msg}
+
+    except Exception as e:
+        logger.error(f"Error general en reimpresión de etiqueta: {e}")
+        return {"success": False, "error": str(e)}

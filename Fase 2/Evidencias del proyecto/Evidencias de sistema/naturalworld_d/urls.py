@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from uuid import UUID
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -42,16 +43,9 @@ urlpatterns = [
     path('delete_producto/<id>', views.delete_producto, name="delete_producto"),
     path('admin_mod_producto/<id>', views.admin_mod_producto, name="admin_mod_producto"),
     path('agregar_al_carrito_2/<int:producto_id>/', views.agregar_al_carrito_2, name='agregar_al_carrito_2'),
-    
-
-
-
-
-
-
-
-
-
+    path('actualizar_estado_pedido/<uuid:pedido_id>/', views.actualizar_estado_pedido, name='actualizar_estado_pedido'),
+    path('mis_pedidos/', views.mis_pedidos, name='mis_pedidos'),
+    path('confirmacion/', views.confirmacion, name='confirmacion'),
 
 ]
 

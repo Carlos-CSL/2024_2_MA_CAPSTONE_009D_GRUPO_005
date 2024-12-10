@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center mb-4 green-bordered-rounded">Cálculo de envíos {{user.username}}</h2>
+    <h2 class="text-center mb-4 green-bordered-rounded">Cálculo de envíos {{user.first_name}}</h2>
 
     <!-- Mostrar mensajes de error -->
     {% if error %}
@@ -36,12 +36,12 @@
 
         <div class="mb-3">
             <label for="rut" class="form-label">RUT:</label>
-            <input type="text" id="rut" name="rut" class="form-control form-control-green" placeholder="Ingrese su RUT (ej: 12345678-9)" required pattern="\d{7,8}-[\dkK]" title="Ingrese un RUT válido, ej: 12345678-9">
+            <input type="text" id="rut" name="rut" class="form-control form-control-green" placeholder="Ingrese su RUT (ej: 12345678-9)" required pattern="\d{7,8}-[\dkK]" title="Ingrese un RUT válido, ej: 12345678-9" maxlength="10">
         </div>
 
         <div class="mb-3">
             <label for="telefono" class="form-label">Teléfono:</label>
-            <input type="text" name="telefono" id="telefono" class="form-control form-control-green" placeholder="Ingrese su teléfono" required pattern="\+?\d{9,15}" title="Formato válido: +56912345678 o 912345678">
+            <input type="text" name="telefono" id="telefono" class="form-control form-control-green" placeholder="Ingrese su teléfono" required pattern="\+?\d{9,15}" title="Formato válido: +56912345678 o 912345678" maxlength="9">
         </div>
 
         <!-- Dirección del Destinatario -->
@@ -95,7 +95,16 @@
         border: 2px solid #28a745; /* Borde verde */
         border-radius: 5px; /* Bordes redondeados */
     }
-
 </style>
+
+<script>
+document.getElementById('rut').addEventListener('input', function () {
+    let rut = this.value.replace(/[^0-9kK]/g, '');
+    if (rut.length > 1 && !rut.includes('-')) {
+        rut = rut.slice(0, -1) + '-' + rut.slice(-1);
+    }
+    this.value = rut.toUpperCase();
+});
+</script>
 
 {% endblock %}

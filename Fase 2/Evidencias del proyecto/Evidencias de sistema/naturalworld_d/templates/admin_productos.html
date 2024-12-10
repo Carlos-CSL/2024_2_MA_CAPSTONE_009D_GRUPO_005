@@ -29,6 +29,23 @@
         }
         
     </style>
+<style>
+    .bg-light-green {
+        background-color: #c5eec8; /* Fondo claro */
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 1.8em; /* Reducir el tamaño de la fuente en pantallas pequeñas */
+        }
+    }
+
+    @media (min-width: 768px) {
+        h1 {
+            font-size: 2.5em; /* Tamaño normal para pantallas medianas y superiores */
+        }
+    }
+</style>
 </head>
 <body>
     <br><br>
@@ -36,10 +53,11 @@
     <div style="margin-left: 1%; margin-right: 1%;">
         <div class="container-fluid borde-verde-redondeado my-4">
             <a href="{% url 'index' %}" class="btn btn-outline-success mb-4">Volver al Inicio</a> 
-            <div style="margin-left: 10%; margin-right: 10%;"> 
-                <h1 style=" text-align: center; font-family: 'Arial', sans-serif; background-color: #c5eec8; /* Fondo claro */ padding: 10px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); font-size: 2.5em;">
-                     Administración de Productos </h1> 
-                    </div> 
+            <div class="container mt-4">
+                <h1 class="text-center bg-light-green py-3 px-4 rounded shadow-lg">
+                    Administración de Productos
+                </h1>
+            </div>
                     <p style="text-align: center; font-size: 120%; margin-top: 20px;">Como usuario administrador, puedes ver el listado de productos de la tienda. Además, puedes agregar, modificar y eliminar productos.
                         <br><br><a href="{% url 'admin_add_producto' %}" class="btn btn-outline-info mb-4">Agregar producto</a> 
                     </p> 

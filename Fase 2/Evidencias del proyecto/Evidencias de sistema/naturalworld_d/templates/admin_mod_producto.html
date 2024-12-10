@@ -91,8 +91,101 @@
 </body>
 </html>
 
+<script>
+(function () {
+    'use strict';
 
+    // Obtener el formulario y todos los campos individuales
+    var formulario = document.getElementById('formulario');
 
+    formulario.addEventListener('submit', function (event) {
+        var esValido = true;
+
+        // Validar campo "Nombre"
+        var nombre = document.getElementById('id_nombre');
+        if (!nombre.value.trim()) {
+            esValido = false;
+            nombre.classList.add('is-invalid');
+        } else {
+            nombre.classList.remove('is-invalid');
+        }
+
+        // Validar campo "Precio"
+        var precio = document.getElementById('id_precio');
+        if (!precio.value || isNaN(precio.value) || parseFloat(precio.value) <= 0) {
+            esValido = false;
+            precio.classList.add('is-invalid');
+        } else {
+            precio.classList.remove('is-invalid');
+        }
+
+        // Validar campo "Descripción"
+        var descripcion = document.getElementById('id_descripcion');
+        if (!descripcion.value.trim()) {
+            esValido = false;
+            descripcion.classList.add('is-invalid');
+        } else {
+            descripcion.classList.remove('is-invalid');
+        }
+
+        // Validar campo "Peso"
+        var peso = document.getElementById('id_peso');
+        if (!peso.value || isNaN(peso.value) || parseFloat(peso.value) <= 0) {
+            esValido = false;
+            peso.classList.add('is-invalid');
+        } else {
+            peso.classList.remove('is-invalid');
+        }
+
+        // Validar campos "Altura", "Ancho", "Largo"
+        var dimensiones = ['id_altura', 'id_ancho', 'id_largo'];
+        dimensiones.forEach(function (campoId) {
+            var campo = document.getElementById(campoId);
+            if (!campo.value || isNaN(campo.value) || parseFloat(campo.value) <= 0) {
+                esValido = false;
+                campo.classList.add('is-invalid');
+            } else {
+                campo.classList.remove('is-invalid');
+            }
+        });
+
+        // Validar campo "Tipo de Producto"
+        var tipoProducto = document.getElementById('id_tipo_producto');
+        if (!tipoProducto.value.trim()) {
+            esValido = false;
+            tipoProducto.classList.add('is-invalid');
+        } else {
+            tipoProducto.classList.remove('is-invalid');
+        }
+
+        // Validar campo "Valor Declarado"
+        var valorDeclarado = document.getElementById('id_valor_declarado');
+        if (!valorDeclarado.value || isNaN(valorDeclarado.value) || parseFloat(valorDeclarado.value) <= 0) {
+            esValido = false;
+            valorDeclarado.classList.add('is-invalid');
+        } else {
+            valorDeclarado.classList.remove('is-invalid');
+        }
+
+        // Validar campo "Stock"
+        var stock = document.getElementById('id_stock');
+        if (!stock.value || isNaN(stock.value) || parseInt(stock.value) < 0) {
+            esValido = false;
+            stock.classList.add('is-invalid');
+        } else {
+            stock.classList.remove('is-invalid');
+        }
+
+        // Si algún campo no es válido, prevenir el envío
+        if (!esValido) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        formulario.classList.add('was-validated');
+    }, false);
+})();
+</script>
 
 
 <style>

@@ -506,13 +506,20 @@ class PaqueteDetallePedido(models.Model):
 
 from django.db import models
 from django.utils.timezone import now
+from django.db import models
+import base64  # Para la decodificación de la etiqueta en Base64
+
+
 class TransportOrder(models.Model):
+    # Relación con el pedido
     pedido = models.OneToOneField(
         'Pedido',
         on_delete=models.CASCADE,
         related_name='transport_order',
         help_text="Pedido asociado a esta orden de transporte"
     )
+
+    # Información principal de la orden
     transport_order_number = models.CharField(
         max_length=20,
         unique=True,
@@ -533,6 +540,8 @@ class TransportOrder(models.Model):
         default='2',
         help_text="Tipo de etiqueta; 0 = Solo Datos, 1 = EPL Zebra + Datos, 2 = Imagen Binaria"
     )
+
+    # Estado de la orden
     estado = models.CharField(
         max_length=20,
         choices=[
@@ -544,17 +553,23 @@ class TransportOrder(models.Model):
         default='pendiente',
         help_text="Estado actual de la orden de transporte"
     )
+
+    # Información de la etiqueta
     etiqueta = models.FileField(
         upload_to='etiquetas/',
         null=True,
         blank=True,
         help_text="Etiqueta generada por Chilexpress para el envío"
     )
+
+    # Respuesta de la API
     respuesta_api = models.JSONField(
         null=True,
         blank=True,
         help_text="Respuesta completa de la API al generar la orden de transporte"
     )
+
+    # Fechas importantes
     fecha_generacion = models.DateTimeField(
         auto_now_add=True,
         help_text="Fecha en que se generó la orden"
@@ -565,7 +580,41 @@ class TransportOrder(models.Model):
     )
 
     def __str__(self):
+        """
+        Representación en forma de string de la TransportOrder.
+        """
         return f"TransportOrder {self.transport_order_number} - Estado {self.estado}"
+
+    def actualizar_estado_y_numero_seguimiento(self, respuesta_api):
+        """
+        Método para actualizar el estado de la orden de transporte y el número de seguimiento
+        a partir de la respuesta de la API.
+        """
+        try:
+            self.transport_order_number = respuesta_api.get('transport_order_number', self.transport_order_number)
+            self.estado = respuesta_api.get('estado', self.estado)
+            self.respuesta_api = respuesta_api  # Se almacena la respuesta completa de la API
+            self.save()
+        except Exception as e:
+            print(f"Error al actualizar el estado y el número de seguimiento: {e}")
+
+    def guardar_etiqueta(self):
+        """
+        Método para convertir la imagen Base64 en un archivo físico y guardarla en el campo 'etiqueta'.
+        Este método se usa cuando la API devuelve una etiqueta en formato Base64.
+        """
+        try:
+            label_data = self.respuesta_api.get('etiqueta_base64', None) if self.respuesta_api else None
+            if label_data:
+                label_data_bytes = base64.b64decode(label_data)
+                file_path = f'etiquetas/etiqueta_{self.transport_order_number}.png'
+                with open(file_path, 'wb') as f:
+                    f.write(label_data_bytes)
+                self.etiqueta = file_path
+                self.save()
+        except Exception as e:
+            print(f"Error al guardar la etiqueta: {e}")
+
 
 from django.db import models
 

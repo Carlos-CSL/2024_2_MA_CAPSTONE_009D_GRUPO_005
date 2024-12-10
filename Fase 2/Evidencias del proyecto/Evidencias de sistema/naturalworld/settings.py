@@ -29,7 +29,7 @@ DEBUG = True
 
 
 
-ALLOWED_HOSTS = ['*','b22c-181-43-120-252.ngrok-free.app']
+ALLOWED_HOSTS = ['*','f4a4-181-43-149-87.ngrok-free.app']
 
 # Application definition
 
@@ -146,7 +146,7 @@ WS_CHILE_EXPRESS_SECONDARY_KEY = os.getenv('WS_CHILE_EXPRESS_SECONDARY_KEY', '7f
 
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://b22c-181-43-120-252.ngrok-free.app',
+    'https://f4a4-181-43-149-87.ngrok-free.app',
 ]
 
 
@@ -206,3 +206,6 @@ AUTHENTICATION_BACKENDS = [
     'naturalworld_d.backends.EmailBackend',  # Ruta completa a tu backend personalizado
     'django.contrib.auth.backends.ModelBackend',  # Backend por defecto de Django
 ]
+
+
+

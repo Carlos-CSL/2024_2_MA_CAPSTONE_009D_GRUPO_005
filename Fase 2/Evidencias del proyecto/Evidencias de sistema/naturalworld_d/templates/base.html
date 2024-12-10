@@ -60,13 +60,10 @@
     <button class="btn dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="bi bi-person-circle"></i>
         <span class="ms-2">
-            <strong>Bienvenid@ {{user.username}}</strong><br/>
+            <strong>Bienvenido/a {{user.first_name}}</strong><br/>
             <a href="#" class="text-muted">Cuenta</a>
         </span>
     </button>
-
-    <!-- Menú desplegable -->
-
 <!-- Menú desplegable -->
 
 {% if user.is_authenticated %}
@@ -74,10 +71,15 @@
         {% if perms.app.add_Producto %}
             <li><a class="dropdown-item" href="{% url 'admin_productos' %}"><img src="{% static 'img/product.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Productos</a></li>
             <li><a class="dropdown-item" href="{% url 'admin_pedidos' %}"><img src="{% static 'img/pedido_icon.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Pedidos</a></li>
-            <li><a class="dropdown-item" href="http://127.0.0.1:8000/admin"><img src="{% static 'img/adminezzz.png' %}" alt="Administración" style="width: 20px; height: 20px;">&nbsp Administración Avanzada</a></li>
         {% endif %}
-        <li><a class="dropdown-item" href="{% url 'logout' %}">
-            <img src="{% static 'img/xez.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;">&nbsp Cerrar Sesión</a></li>
+        <li><a class="dropdown-item" href="{% url 'mis_pedidos' %}">
+            <img src="{% static 'img/mispedidos.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;">&nbsp Mis Pedidos</a></li>
+        <li>
+            <a class="dropdown-item" href="#" onclick="logout();">
+                <img src="{% static 'img/xez.png' %}" alt="Cerrar Sesión" style="width: 20px; height: 20px;">&nbsp; Cerrar Sesión
+            </a>
+        </li>
+            
     </ul>
 {% else %}
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -87,9 +89,6 @@
 {% endif %}
 
 </div>
-
-
-
 <div class="cart-container">
     <a href="{% url 'ver_carrito' %}" style="text-decoration: none;">
         <i class="bi bi-bag"></i>
@@ -101,15 +100,11 @@
             </div>
         </div>
     </nav>
-
-
         <!-- Espacio para más contenido -->
         
             {% block content %}
     
             {% endblock %}
-
-
 
 <!-- FOOTER -->
 <footer class="custom-footer">
@@ -161,6 +156,16 @@
         </div>
     </div>
 </footer>
+
+<form id="logoutForm" method="post" action="{% url 'logout' %}" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+    function logout() {
+        document.getElementById('logoutForm').submit();
+    }
+</script>
 
 <style>
     .carousel-outline {
@@ -246,6 +251,20 @@
     color: white; /* Color del texto */
     }
     </style>
+        <!--script de SweetAlert-->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        {% if messages %}
+          {% for m in messages %}
+            <script>
+              Swal.fire({
+                "title": "Felicitaciones",
+                "text": "{{ m }}",
+                "icon": "success"
+              })
+            </script>
+          {% endfor %}
+        {% endif %}
+
     
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

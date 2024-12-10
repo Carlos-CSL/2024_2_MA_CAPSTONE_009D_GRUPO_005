@@ -81,10 +81,10 @@
                     <p class="card-price">{{ producto.precio_formateado }}</p>
                     
                     <!-- Botón para añadir al carrito con AJAX -->
-                    <div style="text-align: center;">
-                    <a href="{% url 'producto_detalle' producto_id=producto.id %}" class="btn btn-outline-info"> Ver Detalles</a>
-                    <button type="button" class="btn btn-outline-success add-to-cart" data-product-id="{{ producto.id }}">Añadir al carrito</button>
-                </div>
+                    <div class="d-grid d-md-flex gap-2 justify-content-md-center">
+                        <a href="{% url 'producto_detalle' producto_id=producto.id %}" class="btn btn-outline-info w-100 w-md-auto">Ver Detalles</a>
+                        <button type="button" class="btn btn-outline-success w-100 w-md-auto add-to-cart" data-product-id="{{ producto.id }}">Añadir al carrito</button>
+                    </div> 
                 </div>
             </div></a>
         </div>
@@ -100,22 +100,43 @@
     }
 </style>
 
+<!-- Contenedor para notificaciones -->
+<div id="notification" style="display: none; position: fixed; bottom: 20px; right: 20px; background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000;">
+    <span id="notificationMessage"></span>
+</div>
+
 <!-- Script AJAX para añadir al carrito sin redirigir -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const buttons = document.querySelectorAll('.add-to-cart');
     
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+
+        // Configura el mensaje y los estilos según el tipo
+        notificationMessage.textContent = message;
+        notification.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336'; // Verde para éxito, rojo para error
+
+        notification.style.display = 'block';
+        
+        // Oculta automáticamente después de 3 segundos
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
     buttons.forEach(button => {
         button.addEventListener('click', function () {
             const productId = this.getAttribute('data-product-id');
             
-            fetch(`/agregar_al_carrito/${productId}/`, {  // URL corregida para incluir el productId
+            fetch(`/agregar_al_carrito/${productId}/`, { 
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest' // Para que Django reconozca la solicitud como AJAX
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({}),
             })
@@ -123,24 +144,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
                 }
-                return response.json();  // Intenta convertir la respuesta a JSON
+                return response.json();
             })
             .then(data => {
-                console.log("Response data:", data); // Registra la respuesta JSON para depuración
                 if (data.success) {
                     const cartCount = document.getElementById('cartCount');
                     cartCount.textContent = data.cart_total_items;
-                    alert('Producto añadido al carrito.');
+                    showNotification('Producto añadido al carrito.');
                 } else {
-                    alert('Error: ' + (data.message || 'No se pudo añadir el producto.'));
+                    showNotification('Error: ' + (data.message || 'No se pudo añadir el producto.'), 'error');
                 }
             })
             .catch(error => {
                 console.error('Error al añadir al carrito:', error);
-                alert(`Hubo un problema al añadir el producto al carrito: ${error.message}`);
+                showNotification(`Hubo un problema al añadir el producto al carrito: ${error.message}`, 'error');
             });
         });
     });
 });
 </script>
+
 {% endblock %}

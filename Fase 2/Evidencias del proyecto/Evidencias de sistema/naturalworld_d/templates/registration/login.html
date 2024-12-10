@@ -21,7 +21,7 @@
                                 <a style="color: blue;" onclick="window.history.back();">Volver Atrás</a></p>
                             {% else %}
                             <h2>Iniciar Sesión</h2>
-                            <p>¿No tienes cuenta? <a href="#">Regístrate aquí</a></p>
+                            <p>¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a></p>
                             <form method="post" action="{% url 'login' %}">
                                 {% csrf_token %}
                                 <div class="form-group">

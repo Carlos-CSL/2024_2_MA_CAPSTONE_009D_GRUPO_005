@@ -35,7 +35,7 @@
     </table>
     <p><strong>Costo de Envío:</strong> {{ costo_envio |format_currency  }}</p>
     <p><strong>Total a Pagar:</strong> {{ total_pagar |format_currency  }}</p>
-    <p><strong>Dirección de Envío:</strong> {{ direccion.direccion }}, {{ direccion.calle }} {{ direccion.numero }}, {{ direccion.comuna }}</p>
+    <p><strong>Dirección de Envío:</strong> {{ direccion.direccion }} {{ direccion.calle }} {{ direccion.numero }}, {{ direccion.comuna }}</p>
 
     <!-- Botón de Pagar con Mercado Pago -->
     <button onclick="iniciarPago()" class="btn btn-outline-success btn-lg">Pagar con Mercado Pago</button>

@@ -107,7 +107,7 @@ class ProductoForm(forms.ModelForm):
         model = Producto
         fields = [
             'nombre', 'imagen', 'precio', 'descripcion', 'peso',
-            'altura', 'ancho', 'largo', 'tipo_producto', 'valor_declarado', 'stock'
+            'altura', 'ancho', 'largo', 'valor_declarado', 'stock'
         ]
         labels = {
             'nombre': 'Nombre:',
@@ -118,7 +118,6 @@ class ProductoForm(forms.ModelForm):
             'altura': 'Altura (cm):',
             'ancho': 'Ancho (cm):',
             'largo': 'Largo (cm):',
-            'tipo_producto': 'Tipo de Producto:',
             'valor_declarado': 'Valor Declarado:',
             'stock': 'Stock:',
         }
@@ -175,12 +174,6 @@ class ProductoForm(forms.ModelForm):
                 'placeholder': 'Ingrese el largo en cm',
                 'id': 'largo',
                 'min': '0',
-                'required': 'required'
-            }),
-            'tipo_producto': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ingrese el tipo de producto',
-                'id': 'tipo_producto',
                 'required': 'required'
             }),
             'valor_declarado': forms.NumberInput(attrs={
